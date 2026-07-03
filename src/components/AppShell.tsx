@@ -1,7 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, MessageSquarePlus, Compass, BookMarked, History, User, Sparkles, Bell, Sun, MoreHorizontal, Plus } from "lucide-react";
 import logo from "@/assets/yuki-logo.png.asset.json";
-import { type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useChatStore } from "@/lib/chat-store";
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
@@ -14,6 +16,44 @@ const nav = [
 
 export function AppShell({ children, rightPanel }: { children: ReactNode; rightPanel?: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const { setConversation, setMessages, reset } = useChatStore();
+  const [convos, setConvos] = useState<{ id: string; title: string | null; created_at: string | null }[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data, error } = await supabase
+        .from("conversations")
+        .select("id, title, created_at")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) console.error("[AppShell] load conversations error", error);
+      if (!cancelled && data) setConvos(data);
+    }
+    void load();
+    const channel = supabase
+      .channel("conversations-sidebar")
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => void load())
+      .subscribe();
+    return () => {
+      cancelled = true;
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
+  function openConversation(id: string) {
+    console.log("[AppShell] open conversation", id);
+    setMessages([]);
+    setConversation(id);
+    void navigate({ to: "/chat" });
+  }
+
+  function newChat() {
+    console.log("[AppShell] new chat");
+    reset();
+    void navigate({ to: "/chat" });
+  }
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-sidebar">
@@ -22,13 +62,13 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
           <span className="text-lg font-semibold tracking-tight">yuki ai</span>
         </div>
         <div className="px-3">
-          <Link
-            to="/chat"
-            className="flex items-center justify-between rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-medium hover:bg-accent/40 transition"
+          <button
+            onClick={newChat}
+            className="w-full flex items-center justify-between rounded-lg border border-border bg-background/60 px-3 py-2 text-sm font-medium hover:bg-accent/40 transition"
           >
             <span className="flex items-center gap-2"><Plus className="h-4 w-4" /> New Chat</span>
             <kbd className="text-[10px] text-muted-foreground">⌘K</kbd>
-          </Link>
+          </button>
         </div>
         <nav className="mt-4 flex flex-col gap-0.5 px-3">
           {nav.map(({ to, label, icon: Icon }) => {
@@ -53,20 +93,20 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
         <div className="mt-6 px-3">
           <p className="px-3 text-xs font-medium text-muted-foreground">Recent Chats</p>
           <ul className="mt-2 space-y-0.5">
-            {[
-              { t: "Moving to Japan in 2028", d: "Just now" },
-              { t: "Best ramen in Tokyo", d: "2 hours ago" },
-              { t: "Improve my Japanese", d: "Yesterday" },
-              { t: "Tokyo 7-day itinerary", d: "Yesterday" },
-              { t: "How to start a business in…", d: "2 days ago" },
-            ].map((c) => (
-              <li key={c.t}>
-                <button className="w-full flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-left text-xs hover:bg-accent/40">
+            {convos.length === 0 && (
+              <li className="px-3 py-1.5 text-[11px] text-muted-foreground">No chats yet</li>
+            )}
+            {convos.map((c) => (
+              <li key={c.id}>
+                <button
+                  onClick={() => openConversation(c.id)}
+                  className="w-full flex items-center justify-between gap-2 rounded-md px-3 py-1.5 text-left text-xs hover:bg-accent/40"
+                >
                   <span className="flex items-center gap-2 truncate">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary/60" />
-                    <span className="truncate">{c.t}</span>
+                    <span className="truncate">{c.title ?? "Untitled"}</span>
                   </span>
-                  <span className="shrink-0 text-[10px] text-muted-foreground">{c.d}</span>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">{formatWhen(c.created_at)}</span>
                 </button>
               </li>
             ))}
@@ -109,4 +149,18 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
       </main>
     </div>
   );
+}
+
+function formatWhen(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d`;
+  return d.toLocaleDateString();
 }
