@@ -24,7 +24,7 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
         .select("id, role, content, created_at")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
-      if (data) setMessages(data.map((m) => ({ ...m, role: m.role as "user" | "assistant" })));
+      if (data) setMessages(data.map((m) => ({ id: m.id, content: m.content, created_at: m.created_at ?? undefined, role: m.role as "user" | "assistant" })));
     })();
   }, [conversationId, setMessages]);
 
