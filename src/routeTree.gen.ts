@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
   '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chat' | '/history' | '/library'
+  fullPaths: '/' | '/chat' | '/history' | '/library' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chat' | '/history' | '/library'
-  id: '__root__' | '/' | '/chat' | '/history' | '/library'
+  to: '/' | '/chat' | '/history' | '/library' | '/profile'
+  id: '__root__' | '/' | '/chat' | '/history' | '/library' | '/profile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   HistoryRoute: typeof HistoryRoute
   LibraryRoute: typeof LibraryRoute
+  ProfileRoute: typeof ProfileRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library': {
       id: '/library'
       path: '/library'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   HistoryRoute: HistoryRoute,
   LibraryRoute: LibraryRoute,
+  ProfileRoute: ProfileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
