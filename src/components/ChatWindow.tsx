@@ -30,21 +30,24 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
 
   async function send(text: string) {
     const message = text.trim();
+    console.log("[ChatWindow] send()", { message, conversationId, pending });
     if (!message || pending) return;
     setInput("");
 
     let convId = conversationId;
     if (!convId) {
+      console.log("[ChatWindow] creating new conversation");
       const { data, error } = await supabase
         .from("conversations")
         .insert({ user_id: DEMO_USER, title: message.slice(0, 60) })
         .select("id")
         .single();
       if (error || !data) {
-        console.error(error);
+        console.error("[ChatWindow] create conversation failed", error);
         return;
       }
       convId = data.id;
+      console.log("[ChatWindow] conversation created", convId);
       setConversation(convId);
     }
 
@@ -53,14 +56,16 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
     setPending(true);
 
     try {
+      console.log("[ChatWindow] invoking edge function 'chat'", { conversation_id: convId, message });
       const { data, error } = await supabase.functions.invoke("chat", {
         body: { conversation_id: convId, message },
       });
+      console.log("[ChatWindow] edge function response", { data, error });
       if (error) throw error;
       const reply = (data as { reply?: string; message?: string })?.reply ?? (data as { message?: string })?.message ?? "";
       appendMessage({ id: crypto.randomUUID(), role: "assistant", content: reply || "…" });
     } catch (e) {
-      console.error(e);
+      console.error("[ChatWindow] send failed", e);
       appendMessage({ id: crypto.randomUUID(), role: "assistant", content: "Sorry, something went wrong. Please try again." });
     } finally {
       setPending(false);
