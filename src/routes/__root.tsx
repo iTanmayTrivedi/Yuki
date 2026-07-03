@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Yuki AI — Your AI companion for Japan" },
+      { name: "description", content: "Yuki AI answers questions, plans trips, and teaches Japanese — your smart companion for all things Japan." },
+      { name: "author", content: "Yuki AI" },
+      { property: "og:title", content: "Yuki AI — Your AI companion for Japan" },
+      { property: "og:description", content: "Chat with Yuki to explore Japan the smart way." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@YukiAI" },
     ],
     links: [
       {
