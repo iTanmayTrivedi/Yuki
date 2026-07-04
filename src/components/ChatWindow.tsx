@@ -4,13 +4,13 @@ import { Send, Paperclip, Globe, Sparkles, Image as ImageIcon, Mic, Square } fro
 import { supabase } from "@/integrations/supabase/client";
 import { useChatStore, type ChatMessage } from "@/lib/chat-store";
 import logo from "@/assets/yuki-logo.png.asset.json";
-
-const DEMO_USER = "00000000-0000-0000-0000-000000000000";
+import { useAuth } from "@/hooks/use-auth";
 
 export function ChatWindow({ header }: { header?: React.ReactNode }) {
   const { conversationId, messages, pending, pendingPrompt, setConversation, setMessages, appendMessage, setPending, setPendingPrompt } = useChatStore();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -36,10 +36,14 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
 
     let convId = conversationId;
     if (!convId) {
+      if (!user) {
+        console.warn("[ChatWindow] no user; cannot create conversation");
+        return;
+      }
       console.log("[ChatWindow] creating new conversation");
       const { data, error } = await supabase
         .from("conversations")
-        .insert({ user_id: DEMO_USER, title: message.slice(0, 60) })
+        .insert({ user_id: user.id, title: message.slice(0, 60) })
         .select("id")
         .single();
       if (error || !data) {
