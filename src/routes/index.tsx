@@ -5,6 +5,7 @@ import { Paperclip, Globe, Sparkles, Image as ImageIcon, ArrowUp, Plane, Graduat
 import fuji from "@/assets/fuji-hero.jpg";
 import { useState } from "react";
 import { useChatStore } from "@/lib/chat-store";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -30,6 +31,11 @@ function Home() {
   const [input, setInput] = useState("");
   const navigate = useNavigate();
   const { setPendingPrompt, reset } = useChatStore();
+  const { user } = useAuth();
+  const displayName =
+    (user?.user_metadata as { full_name?: string } | null)?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "friend";
 
   const go = (text: string) => {
     reset();
@@ -40,15 +46,24 @@ function Home() {
   return (
     <AppShell rightPanel={<DiscoverPanel />}>
       <div className="relative">
-        <img src={fuji} alt="" className="pointer-events-none absolute -top-20 right-0 h-[420px] w-[70%] object-cover object-right opacity-70 rounded-l-3xl" />
-        <div className="relative">
-          <p className="text-sm text-muted-foreground">こんにちは、Haruka! 👋</p>
-          <h1 className="mt-2 text-5xl font-bold tracking-tight">Ask Yuki anything.</h1>
-          <p className="mt-3 text-sm text-muted-foreground">Your AI guide that knows Japan inside and out.</p>
+        <div className="relative overflow-hidden rounded-3xl border border-border">
+          <img
+            src={fuji}
+            alt="Mount Fuji with cherry blossoms"
+            className="h-[280px] w-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-center px-8">
+            <p className="text-sm text-muted-foreground">こんにちは、{displayName}! 👋</p>
+            <h1 className="mt-2 text-5xl font-bold tracking-tight">Ask Yuki anything.</h1>
+            <p className="mt-3 text-sm text-muted-foreground max-w-md">Your AI guide that knows Japan inside and out.</p>
+          </div>
+        </div>
 
+        <div className="relative mt-6">
           <form
             onSubmit={(e) => { e.preventDefault(); if (input.trim()) go(input); }}
-            className="mt-8 rounded-2xl border border-border bg-card/80 backdrop-blur p-4 shadow-sm"
+            className="rounded-2xl border border-border bg-card/80 backdrop-blur p-4 shadow-sm"
           >
             <input
               value={input}
