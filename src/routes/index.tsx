@@ -5,6 +5,7 @@ import { Paperclip, Globe, Sparkles, Image as ImageIcon, ArrowUp, Plane, Graduat
 import fuji from "@/assets/fuji-hero.jpg";
 import { useState } from "react";
 import { useChatStore } from "@/lib/chat-store";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -30,6 +31,11 @@ function Home() {
   const [input, setInput] = useState("");
   const navigate = useNavigate();
   const { setPendingPrompt, reset } = useChatStore();
+  const { user } = useAuth();
+  const displayName =
+    (user?.user_metadata as { full_name?: string } | null)?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "friend";
 
   const go = (text: string) => {
     reset();
@@ -48,7 +54,7 @@ function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
           <div className="absolute inset-0 flex flex-col justify-center px-8">
-            <p className="text-sm text-muted-foreground">こんにちは、Haruka! 👋</p>
+            <p className="text-sm text-muted-foreground">こんにちは、{displayName}! 👋</p>
             <h1 className="mt-2 text-5xl font-bold tracking-tight">Ask Yuki anything.</h1>
             <p className="mt-3 text-sm text-muted-foreground max-w-md">Your AI guide that knows Japan inside and out.</p>
           </div>
