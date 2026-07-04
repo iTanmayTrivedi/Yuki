@@ -57,11 +57,18 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
 
     try {
       console.log("[ChatWindow] invoking edge function 'chat'", { conversation_id: convId, message });
-      const { data, error } = await supabase.functions.invoke("chat", {
-        body: { conversation_id: convId, message },
+      // Call the Edge Function via raw fetch to avoid the Supabase JS client
+      // adding an `apikey` header, which the Functions gateway's CORS preflight
+      // does not currently allow (browser fails with "Failed to fetch").
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversation_id: convId, message }),
       });
-      console.log("[ChatWindow] edge function response", { data, error });
-      if (error) throw error;
+      const data = await res.json().catch(() => ({} as Record<string, unknown>));
+      console.log("[ChatWindow] edge function response", { status: res.status, data });
+      if (!res.ok) throw new Error((data as { error?: string })?.error || `HTTP ${res.status}`);
       const reply = (data as { reply?: string; message?: string })?.reply ?? (data as { message?: string })?.message ?? "";
       appendMessage({ id: crypto.randomUUID(), role: "assistant", content: reply || "…" });
     } catch (e) {
