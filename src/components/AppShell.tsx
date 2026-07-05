@@ -10,6 +10,7 @@ import {
   MessageSquarePlus,
   MoreHorizontal,
   Plus,
+  Settings,
   Sparkles,
   Sun,
   Trash2,
@@ -21,7 +22,7 @@ import { useChatStore } from "@/lib/chat-store";
 import { useAuth } from "@/hooks/use-auth";
 
 const nav = [
-  { to: "/", label: "Home", icon: Home },
+  { to: "/home", label: "Home", icon: Home },
   { to: "/chat", label: "Chat", icon: MessageSquarePlus },
   { to: "/discover", label: "Discover", icon: Compass },
   { to: "/library", label: "Library", icon: BookMarked },
@@ -185,21 +186,32 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
             </button>
           </div>
           <div className="relative flex items-center gap-2 rounded-lg border border-border bg-background p-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-semibold text-primary-foreground">{initial}</div>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-xs font-semibold">{displayName}</p>
-              <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
-            </div>
-            <button onClick={() => setMenuOpen((v) => !v)} className="text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => void navigate({ to: "/profile" })}
+              className="flex flex-1 min-w-0 items-center gap-2 text-left"
+            >
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-semibold text-primary-foreground shrink-0">{initial}</div>
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-xs font-semibold">{displayName}</p>
+                <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
+              </div>
+            </button>
+            <button onClick={() => setMenuOpen((v) => !v)} className="text-muted-foreground hover:text-foreground shrink-0" aria-label="Account menu">
               <MoreHorizontal className="h-4 w-4" />
             </button>
             {menuOpen && (
               <div className="absolute bottom-full mb-1 right-2 z-20 w-40 rounded-lg border border-border bg-card shadow-lg py-1 text-xs">
                 <button
+                  onClick={() => { setMenuOpen(false); void navigate({ to: "/profile" }); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-accent/50"
+                >
+                  <Settings className="h-3.5 w-3.5" /> Settings
+                </button>
+                <button
                   onClick={signOut}
                   className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-accent/50 text-destructive"
                 >
-                  <LogOut className="h-3.5 w-3.5" /> Sign out
+                  <LogOut className="h-3.5 w-3.5" /> Log out
                 </button>
               </div>
             )}
@@ -209,9 +221,6 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
 
       <main className="flex-1 min-w-0 flex flex-col">
         <header className="flex items-center justify-end gap-2 px-6 py-4">
-          <button className="flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium">
-            <Sparkles className="h-3.5 w-3.5 text-primary" /> Premium
-          </button>
           <button className="rounded-full border border-border bg-background p-2"><Bell className="h-4 w-4" /></button>
           <button className="rounded-full border border-border bg-background p-2"><Sun className="h-4 w-4" /></button>
         </header>
