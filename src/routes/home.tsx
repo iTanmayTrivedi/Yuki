@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useChatStore } from "@/lib/chat-store";
 import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/home")({ component: Home });
 
 const SUGGESTIONS = [
   { icon: Plane, label: "I want to move to Japan in 2028" },
