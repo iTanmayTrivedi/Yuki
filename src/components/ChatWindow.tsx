@@ -116,7 +116,7 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
   }, [pendingPrompt]);
 
   return (
-    <div className="flex h-[calc(100vh-80px)] flex-col rounded-2xl border border-border bg-card overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col bg-card overflow-hidden">
       {header}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {messages.length === 0 && !pending && (
