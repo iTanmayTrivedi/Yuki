@@ -91,27 +91,21 @@ function ChatPage() {
           </div>
         </aside>
 
-        <ChatWindowWrapper
-          header={
-            <div className="flex items-center justify-between border-b border-border px-5 py-3 bg-card">
-              <p className="text-sm font-semibold truncate">{title}</p>
-              <div className="flex items-center gap-1">
-                <button className="rounded-md p-1.5 hover:bg-accent/40"><Pin className="h-4 w-4" /></button>
-                <button className="rounded-md p-1.5 hover:bg-accent/40"><MoreHorizontal className="h-4 w-4" /></button>
+        <div className="min-w-0 flex flex-col overflow-hidden">
+          <ChatWindow
+            header={
+              <div className="flex items-center justify-between border-b border-border px-5 py-3 bg-card">
+                <p className="text-sm font-semibold truncate">{title}</p>
+                <div className="flex items-center gap-1">
+                  <button className="rounded-md p-1.5 hover:bg-accent/40"><Pin className="h-4 w-4" /></button>
+                  <button className="rounded-md p-1.5 hover:bg-accent/40"><MoreHorizontal className="h-4 w-4" /></button>
+                </div>
               </div>
-            </div>
-          }
-        />
+            }
+          />
+        </div>
       </div>
     </AppShell>
-  );
-}
-
-function ChatWindowWrapper({ header }: { header: React.ReactNode }) {
-  return (
-    <div className="min-w-0 flex flex-col overflow-hidden">
-      <ChatWindow header={header} />
-    </div>
   );
 }
 
