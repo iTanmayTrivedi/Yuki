@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Briefcase, BookOpen, ShieldCheck, Sparkles, Sun, Moon, ArrowUp,
-  Compass, ToriiGate, MapPin, CheckCircle2, Check,
+  Compass, MapPin, CheckCircle2, Check,
 } from "lucide-react";
 import fuji from "@/assets/fuji-hero.jpg";
 import logo from "@/assets/yuki-logo.png.asset.json";
