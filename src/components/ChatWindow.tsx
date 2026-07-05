@@ -1,14 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Send, Paperclip, Globe, Sparkles, Image as ImageIcon, Mic, Square } from "lucide-react";
+import { Send, Paperclip, Globe, Mic, Square, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useChatStore, type ChatMessage } from "@/lib/chat-store";
 import logo from "@/assets/yuki-logo.png.asset.json";
 import { useAuth } from "@/hooks/use-auth";
 
 export function ChatWindow({ header }: { header?: React.ReactNode }) {
-  const { conversationId, messages, pending, pendingPrompt, setConversation, setMessages, appendMessage, setPending, setPendingPrompt } = useChatStore();
+  const {
+    conversationId,
+    messages,
+    pending,
+    pendingPrompt,
+    setConversation,
+    setMessages,
+    appendMessage,
+    setPending,
+    setPendingPrompt,
+  } = useChatStore();
   const [input, setInput] = useState("");
+  const [webSearch, setWebSearch] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -24,23 +37,32 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
         .select("id, role, content, created_at")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
-      if (data) setMessages(data.map((m) => ({ id: m.id, content: m.content, created_at: m.created_at ?? undefined, role: m.role as "user" | "assistant" })));
+      if (data)
+        setMessages(
+          data.map((m) => ({
+            id: m.id,
+            content: m.content,
+            created_at: m.created_at ?? undefined,
+            role: m.role as "user" | "assistant",
+          })),
+        );
     })();
   }, [conversationId, setMessages]);
 
   async function send(text: string) {
     const message = text.trim();
-    console.log("[ChatWindow] send()", { message, conversationId, pending });
     if (!message || pending) return;
     setInput("");
 
+    let finalMessage = message;
+    if (webSearch) finalMessage = `[Web search requested] ${finalMessage}`;
+    if (attachment) finalMessage = `${finalMessage}\n\n(Attached file: ${attachment.name})`;
+    const savedAttachment = attachment;
+    setAttachment(null);
+
     let convId = conversationId;
     if (!convId) {
-      if (!user) {
-        console.warn("[ChatWindow] no user; cannot create conversation");
-        return;
-      }
-      console.log("[ChatWindow] creating new conversation");
+      if (!user) return;
       const { data, error } = await supabase
         .from("conversations")
         .insert({ user_id: user.id, title: message.slice(0, 60) })
@@ -51,33 +73,34 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
         return;
       }
       convId = data.id;
-      console.log("[ChatWindow] conversation created", convId);
       setConversation(convId);
     }
 
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: message };
-    appendMessage(userMsg);
+    appendMessage({ id: crypto.randomUUID(), role: "user", content: finalMessage });
     setPending(true);
 
     try {
-      console.log("[ChatWindow] invoking edge function 'chat'", { conversation_id: convId, message });
-      // Call the Edge Function via raw fetch to avoid the Supabase JS client
-      // adding an `apikey` header, which the Functions gateway's CORS preflight
-      // does not currently allow (browser fails with "Failed to fetch").
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversation_id: convId, message }),
+        body: JSON.stringify({ conversation_id: convId, message: finalMessage, web_search: webSearch }),
       });
       const data = await res.json().catch(() => ({} as Record<string, unknown>));
-      console.log("[ChatWindow] edge function response", { status: res.status, data });
       if (!res.ok) throw new Error((data as { error?: string })?.error || `HTTP ${res.status}`);
-      const reply = (data as { reply?: string; message?: string })?.reply ?? (data as { message?: string })?.message ?? "";
+      const reply =
+        (data as { reply?: string; message?: string })?.reply ??
+        (data as { message?: string })?.message ??
+        "";
       appendMessage({ id: crypto.randomUUID(), role: "assistant", content: reply || "…" });
     } catch (e) {
       console.error("[ChatWindow] send failed", e);
-      appendMessage({ id: crypto.randomUUID(), role: "assistant", content: "Sorry, something went wrong. Please try again." });
+      appendMessage({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "Sorry, something went wrong. Please try again.",
+      });
+      if (savedAttachment) setAttachment(savedAttachment);
     } finally {
       setPending(false);
     }
@@ -93,7 +116,7 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
   }, [pendingPrompt]);
 
   return (
-    <div className="flex h-[calc(100vh-80px)] flex-col rounded-2xl border border-border bg-card overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col bg-card overflow-hidden">
       {header}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {messages.length === 0 && !pending && (
@@ -124,6 +147,17 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
           }}
           className="rounded-2xl border border-border bg-background px-4 py-2"
         >
+          {attachment && (
+            <div className="mb-2 flex items-center justify-between gap-2 rounded-md bg-accent/40 px-2.5 py-1.5 text-[11px]">
+              <span className="flex min-w-0 items-center gap-1.5 truncate">
+                <Paperclip className="h-3 w-3 shrink-0" />
+                <span className="truncate">{attachment.name}</span>
+              </span>
+              <button type="button" onClick={() => setAttachment(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <img src={logo.url} alt="" className="h-5 w-5" />
             <input
@@ -133,7 +167,9 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
               className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
               autoFocus
             />
-            <button type="button" className="text-muted-foreground hover:text-foreground"><Mic className="h-4 w-4" /></button>
+            <button type="button" className="text-muted-foreground hover:text-foreground">
+              <Mic className="h-4 w-4" />
+            </button>
             <button
               type="submit"
               disabled={pending || !input.trim()}
@@ -143,10 +179,26 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
             </button>
           </div>
           <div className="mt-1 flex items-center gap-2 pl-7">
-            <Chip icon={<Paperclip className="h-3 w-3" />}>Attach</Chip>
-            <Chip icon={<Globe className="h-3 w-3" />}>Web Search</Chip>
-            <Chip icon={<Sparkles className="h-3 w-3" />}>Think Deeper</Chip>
-            <Chip icon={<ImageIcon className="h-3 w-3" />}>Image</Chip>
+            <input
+              ref={fileRef}
+              type="file"
+              className="hidden"
+              onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
+            />
+            <Chip
+              icon={<Paperclip className="h-3 w-3" />}
+              onClick={() => fileRef.current?.click()}
+              active={!!attachment}
+            >
+              Attach
+            </Chip>
+            <Chip
+              icon={<Globe className="h-3 w-3" />}
+              onClick={() => setWebSearch((v) => !v)}
+              active={webSearch}
+            >
+              Web Search
+            </Chip>
           </div>
         </form>
         <p className="mt-2 text-center text-[11px] text-muted-foreground">
@@ -157,9 +209,27 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
   );
 }
 
-function Chip({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
+function Chip({
+  children,
+  icon,
+  onClick,
+  active,
+}: {
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+  onClick?: () => void;
+  active?: boolean;
+}) {
   return (
-    <button type="button" className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-accent/40">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] transition ${
+        active
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-border bg-background text-muted-foreground hover:bg-accent/40"
+      }`}
+    >
       {icon}
       {children}
     </button>

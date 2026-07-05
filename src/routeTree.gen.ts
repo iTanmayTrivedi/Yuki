@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -25,6 +26,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
+  '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/discover'
     | '/history'
+    | '/home'
     | '/library'
     | '/profile'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/discover'
     | '/history'
+    | '/home'
     | '/library'
     | '/profile'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/discover'
     | '/history'
+    | '/home'
     | '/library'
     | '/profile'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   DiscoverRoute: typeof DiscoverRoute
   HistoryRoute: typeof HistoryRoute
+  HomeRoute: typeof HomeRoute
   LibraryRoute: typeof LibraryRoute
   ProfileRoute: typeof ProfileRoute
 }
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   DiscoverRoute: DiscoverRoute,
   HistoryRoute: HistoryRoute,
+  HomeRoute: HomeRoute,
   LibraryRoute: LibraryRoute,
   ProfileRoute: ProfileRoute,
 }
