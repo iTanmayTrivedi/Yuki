@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
-import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -36,11 +41,6 @@ const HomeRoute = HomeRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiscoverRoute = DiscoverRouteImport.update({
-  id: '/discover',
-  path: '/discover',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -63,32 +63,32 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
-  '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
-  '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
-  '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,46 +96,53 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chat'
-    | '/discover'
     | '/history'
     | '/home'
     | '/library'
     | '/profile'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/chat'
-    | '/discover'
     | '/history'
     | '/home'
     | '/library'
     | '/profile'
+    | '/settings'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/chat'
-    | '/discover'
     | '/history'
     | '/home'
     | '/library'
     | '/profile'
+    | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
-  DiscoverRoute: typeof DiscoverRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
   LibraryRoute: typeof LibraryRoute
   ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -162,13 +169,6 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/discover': {
-      id: '/discover'
-      path: '/discover'
-      fullPath: '/discover'
-      preLoaderRoute: typeof DiscoverRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat': {
@@ -199,11 +199,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
-  DiscoverRoute: DiscoverRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
   LibraryRoute: LibraryRoute,
   ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, BookOpen, ShieldCheck, User as UserIcon, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Sparkles, BookOpen, ShieldCheck, User as UserIcon, Mail, Lock, Eye, EyeOff, MessageSquare, Compass, Languages, Bot, Zap, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import fuji from "@/assets/fuji-hero.jpg";
@@ -63,37 +63,13 @@ function AuthPage() {
   return (
     <div className="min-h-screen w-full bg-[hsl(240_40%_98%)] p-4 sm:p-8">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Left panel */}
-        <div className="relative hidden lg:flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(240_60%_97%)] to-[hsl(260_60%_96%)] p-10">
-          <div className="flex items-center gap-2.5">
-            <img src={logo.url} alt="Yuki" className="h-10 w-10" />
-            <span className="text-2xl font-semibold tracking-tight">yuki</span>
-          </div>
-
-          <div className="relative z-10">
-            <h1 className="font-serif text-5xl leading-[1.05] tracking-tight">
-              Explore Japan.<br />
-              The <span className="italic font-medium text-indigo-500">smart</span> way.
-            </h1>
-            <p className="mt-5 text-sm text-muted-foreground max-w-sm">
-              Yuki is your AI companion for discovering, learning, and experiencing Japan.
-            </p>
-            <ul className="mt-8 space-y-5">
-              <Feature icon={<Sparkles className="h-4 w-4" />} title="AI with local insights" desc="Get answers rooted in real local knowledge." />
-              <Feature icon={<BookOpen className="h-4 w-4" />} title="Plan with confidence" desc="Itineraries, recommendations, and tips tailored to you." />
-              <Feature icon={<ShieldCheck className="h-4 w-4" />} title="Accurate & up to date" desc="Trusted information you can rely on." />
-            </ul>
-          </div>
-
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] overflow-hidden">
-            <img src={fuji} alt="" className="h-full w-full object-cover object-bottom opacity-40 mix-blend-multiply" />
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-[hsl(260_60%_96%)]/30 to-[hsl(260_60%_96%)]" />
-          </div>
-        </div>
-
-        {/* Right form */}
-        <div className="flex items-center justify-center">
+        {/* Left: form */}
+        <div className="flex items-center justify-center order-2 lg:order-1">
           <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-sm">
+            <div className="flex items-center gap-2.5 mb-6 lg:hidden">
+              <img src={logo.url} alt="Yuki" className="h-8 w-8" />
+              <span className="text-xl font-semibold tracking-tight">yuki</span>
+            </div>
             <div className="text-center">
               <h2 className="text-2xl font-semibold tracking-tight">
                 {mode === "signup" ? "Create your account" : "Welcome back"}
@@ -109,12 +85,6 @@ function AuthPage() {
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background py-2.5 text-sm font-medium hover:bg-accent/40 transition"
               >
                 <GoogleIcon /> Continue with Google
-              </button>
-              <button
-                onClick={() => void oauth("apple")}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background py-2.5 text-sm font-medium hover:bg-accent/40 transition"
-              >
-                <AppleIcon /> Continue with Apple
               </button>
             </div>
 
@@ -172,6 +142,76 @@ function AuthPage() {
             </p>
           </div>
         </div>
+
+        {/* Right: interactive feature showcase */}
+        <FeatureShowcase />
+      </div>
+    </div>
+  );
+}
+
+function FeatureShowcase() {
+  const [active, setActive] = useState(0);
+  const features = [
+    { icon: MessageSquare, title: "Chat with Yuki", desc: "Ask anything about Japan — get answers grounded in local knowledge and up-to-date sources.", tone: "from-indigo-500 to-violet-500" },
+    { icon: Compass, title: "Plan trips", desc: "Personalized itineraries for Kyoto, Tokyo, and hidden gems — built around your style and budget.", tone: "from-rose-500 to-orange-500" },
+    { icon: Languages, title: "Learn Japanese", desc: "Daily phrases, grammar breakdowns, and conversation practice from N5 to N1.", tone: "from-emerald-500 to-teal-500" },
+    { icon: Bot, title: "Roadmaps & goals", desc: "Multi-year plans for moving, studying, or working in Japan — tracked and updated over time.", tone: "from-sky-500 to-blue-500" },
+    { icon: Zap, title: "Web-search enabled", desc: "Yuki checks the web when it matters — visa rules, weather, opening hours, real prices.", tone: "from-amber-500 to-yellow-500" },
+    { icon: MapPin, title: "Made for Japan", desc: "Cultural insight, etiquette, food, hiring spotlights — a companion that actually knows the place.", tone: "from-fuchsia-500 to-pink-500" },
+  ];
+  const A = features[active];
+  const Icon = A.icon;
+  return (
+    <div className="relative hidden lg:flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(240_60%_97%)] via-white to-[hsl(260_60%_96%)] p-10 order-1 lg:order-2 border border-border">
+      <div className="flex items-center gap-2.5">
+        <img src={logo.url} alt="Yuki" className="h-10 w-10" />
+        <span className="text-2xl font-semibold tracking-tight">yuki</span>
+      </div>
+
+      <div className="relative z-10">
+        <h1 className="font-serif text-5xl leading-[1.05] tracking-tight">
+          Everything Japan.<br />
+          One <span className="italic font-medium text-indigo-500">companion</span>.
+        </h1>
+        <p className="mt-4 text-sm text-muted-foreground max-w-sm">Hover a card to preview what Yuki can do for you.</p>
+
+        {/* Featured preview */}
+        <div key={active} className="mt-6 rounded-2xl border border-border bg-white/70 backdrop-blur p-5 shadow-xl transition">
+          <div className={`inline-flex rounded-xl bg-gradient-to-br ${A.tone} p-2.5 text-white`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <p className="mt-3 text-lg font-semibold tracking-tight">{A.title}</p>
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{A.desc}</p>
+        </div>
+
+        {/* Interactive grid */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {features.map((f, i) => {
+            const FIcon = f.icon;
+            return (
+              <button
+                key={f.title}
+                onMouseEnter={() => setActive(i)}
+                onFocus={() => setActive(i)}
+                onClick={() => setActive(i)}
+                className={`group flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                  i === active ? "border-indigo-400 bg-white shadow-md" : "border-border bg-white/60 hover:bg-white"
+                }`}
+              >
+                <span className={`inline-flex rounded-lg bg-gradient-to-br ${f.tone} p-1.5 text-white`}>
+                  <FIcon className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-[11px] font-semibold leading-tight">{f.title}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[35%] overflow-hidden">
+        <img src={fuji} alt="" className="h-full w-full object-cover object-bottom opacity-30 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white" />
       </div>
     </div>
   );

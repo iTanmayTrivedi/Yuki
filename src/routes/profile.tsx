@@ -1,68 +1,147 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { BadgeCheck, MapPin, Crown, MessageSquare, Bookmark, Calendar, FileText, HelpCircle, Settings, Globe, Brain, Link as LinkIcon, CreditCard, ChevronRight } from "lucide-react";
+import { BadgeCheck, MapPin, MessageSquare, Bookmark, Camera, Loader2, Pencil, Check as CheckIcon, X as XIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useProfile } from "@/hooks/use-profile";
+import { supabase } from "@/integrations/supabase/client";
+import fuji from "@/assets/fuji-hero.jpg";
 
 export const Route = createFileRoute("/profile")({ component: ProfilePage });
 
 function ProfilePage() {
+  const { user } = useAuth();
+  const { profile, avatarUrl, bannerUrl, update, uploadImage, loading } = useProfile();
+  const avatarRef = useRef<HTMLInputElement>(null);
+  const bannerRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState<"avatar" | "banner" | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [location, setLocation] = useState("");
+  const [bio, setBio] = useState("");
+  const [chatCount, setChatCount] = useState(0);
+  const [msgCount, setMsgCount] = useState(0);
+
+  useEffect(() => {
+    if (!profile) return;
+    setFullName(profile.full_name ?? "");
+    setLocation(profile.location ?? "");
+    setBio(profile.bio ?? "");
+  }, [profile]);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { count: cc } = await supabase.from("conversations").select("*", { head: true, count: "exact" });
+      const { count: mc } = await supabase.from("messages").select("*", { head: true, count: "exact" });
+      setChatCount(cc ?? 0);
+      setMsgCount(mc ?? 0);
+    })();
+  }, [user]);
+
+  async function pick(kind: "avatar" | "banner", file: File | null) {
+    if (!file) return;
+    setBusy(kind);
+    await uploadImage(file, kind);
+    setBusy(null);
+  }
+
+  async function save() {
+    await update({ full_name: fullName, location, bio });
+    setEditing(false);
+  }
+
+  if (loading || !profile) {
+    return <AppShell><div className="py-20 text-center text-sm text-muted-foreground">Loading profile…</div></AppShell>;
+  }
+
   return (
     <AppShell>
-      <h1 className="text-3xl font-bold">Profile</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Manage your account, preferences and insights.</p>
-
-      <section className="mt-6 rounded-2xl border border-border bg-card p-6 flex items-center justify-between">
-        <div className="flex items-center gap-5">
-          <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary to-accent" />
-          <div>
-            <p className="flex items-center gap-2 text-2xl font-semibold">Haruka S. <BadgeCheck className="h-5 w-5 text-primary" /></p>
-            <p className="text-sm text-muted-foreground">haruka.s@example.com</p>
-            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" /> Tokyo, Japan</p>
-          </div>
-        </div>
-        <div className="rounded-xl border border-border p-4 min-w-[260px]">
-          <p className="flex items-center gap-2 text-sm font-semibold"><Crown className="h-4 w-4 text-primary" /> Yuki Pro <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">Pro</span></p>
-          <p className="mt-1 text-xs">You're on Pro Plan</p>
-          <p className="text-[10px] text-muted-foreground">Next billing date: May 20, 2025</p>
-          <button className="mt-3 w-full rounded-md border border-border py-1.5 text-xs">Manage Plan</button>
-        </div>
-      </section>
-
-      <section className="mt-4 rounded-2xl border border-border bg-card p-5 grid grid-cols-4 divide-x divide-border">
-        {[{ n: 128, l: "Chats", i: MessageSquare }, { n: 23, l: "Saved", i: Bookmark }, { n: 12, l: "Itineraries", i: Calendar }, { n: 8, l: "Documents", i: FileText }].map(({ n, l, i: Icon }) => (
-          <div key={l} className="flex items-center gap-3 px-4">
-            <div className="rounded-lg bg-accent/50 p-2 text-primary"><Icon className="h-4 w-4" /></div>
-            <div><p className="text-2xl font-bold">{n}</p><p className="text-xs text-muted-foreground">{l}</p></div>
-          </div>
-        ))}
-      </section>
-
-      <div className="mt-4 grid grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-sm font-semibold">Your insights</p>
-          <ul className="mt-4 space-y-3 text-sm">
-            <li className="flex items-center justify-between"><span className="flex items-center gap-2"><HelpCircle className="h-4 w-4 text-muted-foreground" /> Questions asked</span><span className="font-semibold">45</span></li>
-            <li className="flex items-center justify-between"><span className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> Time saved</span><span className="font-semibold">12.5 hrs</span></li>
-            <li className="flex items-center justify-between"><span className="flex items-center gap-2"><Bookmark className="h-4 w-4 text-muted-foreground" /> Topics explored</span><span className="font-semibold">7</span></li>
-            <li className="flex items-center justify-between"><span className="flex items-center gap-2">🔥 Streak</span><span className="font-semibold">14 days</span></li>
-          </ul>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-sm font-semibold">Quick access</p>
-          <ul className="mt-4 space-y-3 text-sm">
-            {[{ i: Settings, l: "Personal information" }, { i: Settings, l: "Preferences" }, { i: Globe, l: "Languages" }, { i: Brain, l: "Memory & personalization" }, { i: LinkIcon, l: "Connected accounts" }, { i: CreditCard, l: "Payment & billing" }].map(({ i: Icon, l }) => (
-              <li key={l} className="flex items-center justify-between"><span className="flex items-center gap-2 text-muted-foreground"><Icon className="h-4 w-4" /> {l}</span><ChevronRight className="h-4 w-4 text-muted-foreground" /></li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-5 text-center">
-          <p className="text-sm font-semibold text-left">Achievements</p>
-          <div className="mt-4 inline-flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 to-indigo-100">🗻</div>
-          <p className="mt-3 text-sm font-semibold">Japan Explorer</p>
-          <p className="text-[11px] text-muted-foreground">Explored 10+ topics about Japan</p>
-          <div className="mt-3 flex justify-center gap-2">{["⛩️","🎋","🍡","🛡️"].map(e => <div key={e} className="h-8 w-8 rounded-lg bg-accent/40 flex items-center justify-center text-sm">{e}</div>)}</div>
-          <button className="mt-3 w-full rounded-md border border-border py-1.5 text-xs">View all achievements</button>
-        </div>
+      {/* Banner */}
+      <div className="relative -mx-4 md:-mx-6 h-48 md:h-60 overflow-hidden">
+        <img src={bannerUrl ?? fuji} alt="Banner" className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        <button
+          onClick={() => bannerRef.current?.click()}
+          className="absolute top-3 right-4 flex items-center gap-1.5 rounded-lg bg-background/90 backdrop-blur px-3 py-1.5 text-xs font-medium border border-border hover:bg-background"
+        >
+          {busy === "banner" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+          Change banner
+        </button>
+        <input ref={bannerRef} type="file" accept="image/*" className="hidden" onChange={(e) => void pick("banner", e.target.files?.[0] ?? null)} />
       </div>
+
+      {/* Identity card */}
+      <section className="-mt-16 relative rounded-2xl border border-border bg-card p-6">
+        <div className="flex flex-col md:flex-row md:items-end gap-5">
+          <div className="relative shrink-0">
+            <div className="h-28 w-28 rounded-full border-4 border-card overflow-hidden bg-gradient-to-br from-primary to-accent">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full grid place-items-center text-3xl font-bold text-primary-foreground">
+                  {(profile.full_name ?? user?.email ?? "?").charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => avatarRef.current?.click()}
+              className="absolute bottom-1 right-1 rounded-full bg-primary text-primary-foreground p-1.5 shadow-md hover:bg-primary/90"
+              aria-label="Change avatar"
+            >
+              {busy === "avatar" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+            </button>
+            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => void pick("avatar", e.target.files?.[0] ?? null)} />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {editing ? (
+              <div className="space-y-2">
+                <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-lg font-semibold outline-none" />
+                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location" className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs outline-none" />
+                <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell people a bit about you…" rows={2} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs outline-none resize-none" />
+              </div>
+            ) : (
+              <>
+                <p className="flex items-center gap-2 text-2xl font-semibold">{profile.full_name || "Add your name"} <BadgeCheck className="h-5 w-5 text-primary" /></p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                {profile.location && (
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" /> {profile.location}</p>
+                )}
+                {profile.bio && <p className="mt-2 text-sm text-foreground/80 max-w-xl">{profile.bio}</p>}
+              </>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            {editing ? (
+              <>
+                <button onClick={save} className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5"><CheckIcon className="h-3.5 w-3.5" /> Save</button>
+                <button onClick={() => setEditing(false)} className="rounded-lg border border-border px-3 py-2 text-xs inline-flex items-center gap-1.5"><XIcon className="h-3.5 w-3.5" /> Cancel</button>
+              </>
+            ) : (
+              <button onClick={() => setEditing(true)} className="rounded-lg border border-border px-3 py-2 text-xs inline-flex items-center gap-1.5 hover:bg-accent/40"><Pencil className="h-3.5 w-3.5" /> Edit profile</button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Live stats */}
+      <section className="mt-4 rounded-2xl border border-border bg-card p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Stat n={chatCount} l="Chats" i={<MessageSquare className="h-4 w-4" />} />
+        <Stat n={msgCount} l="Messages" i={<Bookmark className="h-4 w-4" />} />
+        <Stat n={new Date(profile.created_at ?? Date.now()).toLocaleDateString(undefined, { month: "short", year: "numeric" })} l="Joined" i={<BadgeCheck className="h-4 w-4" />} />
+        <Stat n={profile.location ?? "—"} l="Location" i={<MapPin className="h-4 w-4" />} />
+      </section>
     </AppShell>
+  );
+}
+
+function Stat({ n, l, i }: { n: string | number; l: string; i: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="rounded-lg bg-accent/50 p-2 text-primary">{i}</div>
+      <div><p className="text-xl font-bold truncate">{n}</p><p className="text-xs text-muted-foreground">{l}</p></div>
+    </div>
   );
 }

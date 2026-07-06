@@ -3,7 +3,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell,
   BookMarked,
-  Compass,
   History,
   Home,
   LogOut,
@@ -15,16 +14,19 @@ import {
   Sun,
   Trash2,
   User,
+  Menu,
+  X,
 } from "lucide-react";
 import logo from "@/assets/yuki-logo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useChatStore } from "@/lib/chat-store";
 import { useAuth } from "@/hooks/use-auth";
+import { useProfile } from "@/hooks/use-profile";
+import { MobileNav } from "@/components/MobileNav";
 
 const nav = [
   { to: "/home", label: "Home", icon: Home },
   { to: "/chat", label: "Chat", icon: MessageSquarePlus },
-  { to: "/discover", label: "Discover", icon: Compass },
   { to: "/library", label: "Library", icon: BookMarked },
   { to: "/history", label: "History", icon: History },
   { to: "/profile", label: "Profile", icon: User },
@@ -34,9 +36,11 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { profile, avatarUrl } = useProfile();
   const { setConversation, setMessages, reset, conversationId } = useChatStore();
   const [convos, setConvos] = useState<{ id: string; title: string | null; created_at: string | null }[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSidebar, setMobileSidebar] = useState(false);
 
   // Auth gate
   useEffect(() => {
@@ -104,6 +108,7 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
   }
 
   const displayName =
+    profile?.full_name?.trim() ||
     (user.user_metadata as { full_name?: string } | null)?.full_name?.trim() ||
     user.email?.split("@")[0] ||
     "You";
@@ -111,10 +116,20 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
-      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-sidebar">
+      {mobileSidebar && (
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileSidebar(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+      )}
+      <aside
+        className={`${mobileSidebar ? "flex" : "hidden"} md:flex fixed md:static inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r border-border bg-sidebar`}
+      >
         <div className="flex items-center gap-2 px-5 py-5">
           <img src={logo.url} alt="Yuki" className="h-8 w-8" />
           <span className="text-lg font-semibold tracking-tight">yuki ai</span>
+          <button className="md:hidden ml-auto" onClick={() => setMobileSidebar(false)} aria-label="Close menu">
+            <X className="h-4 w-4" />
+          </button>
         </div>
         <div className="px-3">
           <button
@@ -132,6 +147,7 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
               <Link
                 key={to}
                 to={to}
+                onClick={() => setMobileSidebar(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
                   active ? "bg-accent text-accent-foreground font-medium" : "text-sidebar-foreground/80 hover:bg-accent/40"
                 }`}
@@ -141,6 +157,15 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
               </Link>
             );
           })}
+          <Link
+            to="/settings"
+            onClick={() => setMobileSidebar(false)}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
+              pathname === "/settings" ? "bg-accent text-accent-foreground font-medium" : "text-sidebar-foreground/80 hover:bg-accent/40"
+            }`}
+          >
+            <Settings className="h-4 w-4" /> Settings
+          </Link>
         </nav>
 
         <div className="mt-6 px-3 flex-1 min-h-0 overflow-y-auto">
@@ -190,7 +215,11 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
               onClick={() => void navigate({ to: "/profile" })}
               className="flex flex-1 min-w-0 items-center gap-2 text-left"
             >
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-semibold text-primary-foreground shrink-0">{initial}</div>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-semibold text-primary-foreground shrink-0">{initial}</div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="truncate text-xs font-semibold">{displayName}</p>
                 <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
@@ -202,7 +231,7 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
             {menuOpen && (
               <div className="absolute bottom-full mb-1 right-2 z-20 w-40 rounded-lg border border-border bg-card shadow-lg py-1 text-xs">
                 <button
-                  onClick={() => { setMenuOpen(false); void navigate({ to: "/profile" }); }}
+                  onClick={() => { setMenuOpen(false); void navigate({ to: "/settings" }); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-accent/50"
                 >
                   <Settings className="h-3.5 w-3.5" /> Settings
@@ -220,15 +249,25 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
       </aside>
 
       <main className="flex-1 min-w-0 flex flex-col">
-        <header className="flex items-center justify-end gap-2 px-6 py-4">
+        <header className="flex items-center justify-between gap-2 px-4 md:px-6 py-4">
+          <button className="md:hidden rounded-full border border-border bg-background p-2" onClick={() => setMobileSidebar(true)} aria-label="Menu">
+            <Menu className="h-4 w-4" />
+          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <img src={logo.url} alt="" className="h-6 w-6" />
+            <span className="text-sm font-semibold">yuki ai</span>
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
           <button className="rounded-full border border-border bg-background p-2"><Bell className="h-4 w-4" /></button>
           <button className="rounded-full border border-border bg-background p-2"><Sun className="h-4 w-4" /></button>
+          </div>
         </header>
-        <div className="flex-1 min-w-0 flex">
-          <div className="flex-1 min-w-0 px-6 pb-8">{children}</div>
+        <div className="flex-1 min-w-0 flex pb-16 md:pb-0">
+          <div className="flex-1 min-w-0 px-4 md:px-6 pb-8">{children}</div>
           {rightPanel && <div className="hidden xl:block w-[340px] shrink-0 border-l border-border bg-sidebar px-5 py-6">{rightPanel}</div>}
         </div>
       </main>
+      <MobileNav />
     </div>
   );
 }

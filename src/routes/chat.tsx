@@ -54,8 +54,8 @@ function ChatPage() {
 
   return (
     <AppShell>
-      <div className="grid grid-cols-[280px_1fr] rounded-2xl border border-border bg-card overflow-hidden h-[calc(100vh-80px)]">
-        <aside className="border-r border-border p-4 overflow-hidden flex flex-col">
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-0 h-[calc(100vh-120px)] md:h-[calc(100vh-80px)] -mx-4 md:-mx-6">
+        <aside className="hidden md:flex border-r border-border px-4 py-4 overflow-hidden flex-col">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Chats</h2>
             <button onClick={() => reset()} className="rounded-md border border-border p-1.5" title="New chat">
@@ -91,10 +91,10 @@ function ChatPage() {
           </div>
         </aside>
 
-        <div className="min-w-0 flex flex-col overflow-hidden">
+        <div className="min-w-0 flex flex-col overflow-hidden bg-background">
           <ChatWindow
             header={
-              <div className="flex items-center justify-between border-b border-border px-5 py-3 bg-card">
+              <div className="flex items-center justify-between border-b border-border px-5 py-3 bg-background">
                 <p className="text-sm font-semibold truncate">{title}</p>
                 <div className="flex items-center gap-1">
                   <button className="rounded-md p-1.5 hover:bg-accent/40"><Pin className="h-4 w-4" /></button>

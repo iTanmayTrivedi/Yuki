@@ -216,8 +216,8 @@ function TrustPill({ icon, label }: { icon: React.ReactNode; label: string }) {
 
 function FeatureCard({ icon, title, desc, tone }: { icon: React.ReactNode; title: string; desc: string; tone: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-white p-5 text-center">
-      <div className={`mx-auto grid h-11 w-11 place-items-center rounded-full ${tone}`}>{icon}</div>
+    <div className="group rounded-2xl border border-border bg-white p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-indigo-200">
+      <div className={`mx-auto grid h-11 w-11 place-items-center rounded-full ${tone} transition-transform duration-300 group-hover:scale-110`}>{icon}</div>
       <p className="mt-3 text-sm font-semibold">{title}</p>
       <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{desc}</p>
     </div>

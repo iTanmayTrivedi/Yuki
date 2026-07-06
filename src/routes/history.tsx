@@ -66,8 +66,8 @@ function HistoryPage() {
 
   return (
     <AppShell>
-      <div className="grid grid-cols-[320px_1fr] gap-4">
-        <aside className="rounded-2xl border border-border bg-card p-4 h-[calc(100vh-80px)] overflow-y-auto">
+      <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-0 h-[calc(100vh-120px)] md:h-[calc(100vh-80px)] -mx-4 md:-mx-6">
+        <aside className="border-r border-border bg-background p-4 overflow-y-auto">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold">History</h1>
             <button className="rounded-md border border-border p-1.5"><Filter className="h-3.5 w-3.5" /></button>
@@ -111,7 +111,7 @@ function HistoryPage() {
           </div>
         </aside>
 
-        <section className="rounded-2xl border border-border bg-card p-6 h-[calc(100vh-80px)] overflow-y-auto">
+        <section className="bg-background p-6 overflow-y-auto">
           {!active ? (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               Select a chat to view its history
