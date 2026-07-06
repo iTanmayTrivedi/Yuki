@@ -9,6 +9,8 @@ export type Profile = {
   banner_url: string | null;
   location: string | null;
   bio: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 // Convert a storage path to a signed URL (private bucket)
