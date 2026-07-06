@@ -13,7 +13,6 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
-import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -38,11 +37,6 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DiscoverRoute = DiscoverRouteImport.update({
-  id: '/discover',
-  path: '/discover',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ChatRoute = ChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -63,7 +57,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
-  '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
@@ -73,7 +66,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
-  '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
@@ -84,7 +76,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
-  '/discover': typeof DiscoverRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/library': typeof LibraryRoute
@@ -96,27 +87,17 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chat'
-    | '/discover'
     | '/history'
     | '/home'
     | '/library'
     | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth'
-    | '/chat'
-    | '/discover'
-    | '/history'
-    | '/home'
-    | '/library'
-    | '/profile'
+  to: '/' | '/auth' | '/chat' | '/history' | '/home' | '/library' | '/profile'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/chat'
-    | '/discover'
     | '/history'
     | '/home'
     | '/library'
@@ -127,7 +108,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
-  DiscoverRoute: typeof DiscoverRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
   LibraryRoute: typeof LibraryRoute
@@ -164,13 +144,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/discover': {
-      id: '/discover'
-      path: '/discover'
-      fullPath: '/discover'
-      preLoaderRoute: typeof DiscoverRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/chat': {
       id: '/chat'
       path: '/chat'
@@ -199,7 +172,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
-  DiscoverRoute: DiscoverRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
   LibraryRoute: LibraryRoute,
