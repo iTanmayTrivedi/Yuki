@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { DiscoverPanel } from "@/components/DiscoverPanel";
-import { Paperclip, Globe, Sparkles, Image as ImageIcon, ArrowUp, Plane, GraduationCap, MapPin, Briefcase, Building2, Scale, ChevronRight, ArrowDown, Check } from "lucide-react";
+import { Paperclip, Globe, ArrowUp, Plane, GraduationCap, MapPin, Briefcase, Building2, Scale, ChevronRight, ArrowDown, Check } from "lucide-react";
 import fuji from "@/assets/fuji-hero.jpg";
 import { useState } from "react";
 import { useChatStore } from "@/lib/chat-store";
 import { useAuth } from "@/hooks/use-auth";
+import { useProfile } from "@/hooks/use-profile";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
@@ -32,7 +32,9 @@ function Home() {
   const navigate = useNavigate();
   const { setPendingPrompt, reset } = useChatStore();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const displayName =
+    profile?.full_name?.split(" ")[0] ||
     (user?.user_metadata as { full_name?: string } | null)?.full_name?.split(" ")[0] ||
     user?.email?.split("@")[0] ||
     "friend";
@@ -44,7 +46,7 @@ function Home() {
   };
 
   return (
-    <AppShell rightPanel={<DiscoverPanel />}>
+    <AppShell>
       <div className="relative">
         <div className="relative overflow-hidden rounded-3xl border border-border">
           <img
@@ -75,8 +77,6 @@ function Home() {
               <div className="flex flex-wrap gap-2">
                 <Chip icon={<Paperclip className="h-3 w-3" />}>Attach</Chip>
                 <Chip icon={<Globe className="h-3 w-3" />}>Web Search</Chip>
-                <Chip icon={<Sparkles className="h-3 w-3" />}>Think Deeper</Chip>
-                <Chip icon={<ImageIcon className="h-3 w-3" />}>Image</Chip>
               </div>
               <button type="submit" className="rounded-full bg-primary p-2.5 text-primary-foreground hover:bg-primary/90 transition">
                 <ArrowUp className="h-4 w-4" />
