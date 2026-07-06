@@ -1,88 +1,128 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { Search, Filter, Plus, Briefcase, BookOpen, Lightbulb, Utensils, FolderPlus } from "lucide-react";
+import { Search, Filter, Plus, MessageSquare, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useNavigate } from "@tanstack/react-router";
+import { useChatStore } from "@/lib/chat-store";
 
 export const Route = createFileRoute("/library")({ component: LibraryPage });
 
-const COLLECTIONS = [
-  { name: "Travel Plans", count: 12, icon: Briefcase, tone: "bg-sky-100 text-sky-600" },
-  { name: "Learning Japanese", count: 8, icon: BookOpen, tone: "bg-emerald-100 text-emerald-600" },
-  { name: "Work & Productivity", count: 15, icon: Briefcase, tone: "bg-indigo-100 text-indigo-600" },
-  { name: "Recipes", count: 6, icon: Utensils, tone: "bg-amber-100 text-amber-600" },
-  { name: "Ideas & Inspiration", count: 9, icon: Lightbulb, tone: "bg-rose-100 text-rose-600" },
-];
-
-const ITEMS = [
-  { name: "Best time to visit Japan", desc: "The best time to visit Japan depends on what you want…", type: "Chat", collection: "Travel Plans", updated: "Today, 9:41 AM" },
-  { name: "3-day Tokyo itinerary", desc: "Here's a 3-day itinerary for Tokyo with must-see spots…", type: "Chat", collection: "Travel Plans", updated: "Yesterday, 8:32 PM" },
-  { name: "Japanese phrases for beginners", desc: "Basic greetings, useful expressions, and daily phrases.", type: "Document", collection: "Learning Japanese", updated: "May 18, 2025" },
-  { name: "Top 10 places to visit in Kyoto", desc: "https://example.com/kyoto-travel-guide", type: "Link", collection: "Travel Plans", updated: "May 17, 2025" },
-  { name: "Project ideas brainstorm", desc: "Ideas for the new AI productivity tool…", type: "Note", collection: "Work & Productivity", updated: "May 16, 2025" },
-  { name: "Healthy breakfast recipes", desc: "5 easy and nutritious recipes to start your day.", type: "Document", collection: "Recipes", updated: "May 15, 2025" },
-];
+type Item = { id: string; title: string | null; created_at: string | null; preview: string | null };
 
 function LibraryPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { setConversation, setMessages } = useChatStore();
+  const [items, setItems] = useState<Item[]>([]);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      const { data: convos } = await supabase
+        .from("conversations")
+        .select("id, title, created_at")
+        .order("created_at", { ascending: false });
+      if (!convos) { setLoading(false); return; }
+      const withPreview = await Promise.all(
+        convos.map(async (c) => {
+          const { data: msg } = await supabase
+            .from("messages")
+            .select("content")
+            .eq("conversation_id", c.id)
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          return { ...c, preview: msg?.content ?? null } as Item;
+        }),
+      );
+      if (!cancelled) { setItems(withPreview); setLoading(false); }
+    }
+    void load();
+    const ch = supabase
+      .channel("library-conversations")
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => void load())
+      .subscribe();
+    return () => { cancelled = true; void supabase.removeChannel(ch); };
+  }, [user]);
+
+  const filtered = items.filter((i) => (i.title ?? "").toLowerCase().includes(query.toLowerCase()) || (i.preview ?? "").toLowerCase().includes(query.toLowerCase()));
+
+  function open(id: string) {
+    setMessages([]);
+    setConversation(id);
+    void navigate({ to: "/chat" });
+  }
+
   return (
     <AppShell>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Library</h1>
-          <p className="mt-1 text-sm text-muted-foreground">All your saved chats, documents, and resources in one place.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Your live chat history and saved content, updated in real time.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground w-64">
-            <Search className="h-3.5 w-3.5" /> Search library <span className="ml-auto text-[10px]">⌘K</span>
+            <Search className="h-3.5 w-3.5" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search library" className="flex-1 bg-transparent outline-none" />
           </div>
-          <button className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs"><Filter className="h-3.5 w-3.5" /> Filter</button>
-          <button className="rounded-lg bg-primary px-3 py-2 text-xs text-primary-foreground flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> New</button>
+          <button onClick={() => { setMessages([]); setConversation(null); void navigate({ to: "/chat" }); }} className="rounded-lg bg-primary px-3 py-2 text-xs text-primary-foreground flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> New Chat</button>
         </div>
       </div>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Collections</h2>
-          <a className="text-xs text-primary font-medium">View all</a>
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <Sparkles className="h-4 w-4 text-primary" /> Live activity
         </div>
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-6 gap-3">
-          {COLLECTIONS.map(({ name, count, icon: Icon, tone }) => (
-            <div key={name} className="rounded-xl border border-border p-4">
-              <div className={`inline-flex rounded-lg p-2 ${tone}`}><Icon className="h-4 w-4" /></div>
-              <p className="mt-3 text-sm font-semibold">{name}</p>
-              <p className="text-[11px] text-muted-foreground">{count} items</p>
-            </div>
-          ))}
-          <div className="rounded-xl border border-dashed border-border p-4 flex flex-col items-center justify-center text-muted-foreground">
-            <FolderPlus className="h-5 w-5" />
-            <p className="mt-2 text-xs">New collection</p>
+        {loading ? (
+          <p className="mt-4 text-xs text-muted-foreground">Loading your library…</p>
+        ) : filtered.length === 0 ? (
+          <div className="mt-6 flex flex-col items-center justify-center py-10 text-center">
+            <MessageSquare className="h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 text-sm font-medium">No conversations yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">Start a chat and it'll show up here.</p>
           </div>
-        </div>
-      </section>
-
-      <section className="mt-5 rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center gap-4 border-b border-border pb-3 text-sm">
-          {["All", "Chats", "Documents", "Images", "Links", "Notes"].map((t, i) => (
-            <button key={t} className={i === 0 ? "text-primary border-b-2 border-primary pb-2" : "text-muted-foreground"}>{t}</button>
-          ))}
-        </div>
-        <table className="mt-3 w-full text-sm">
-          <thead className="text-left text-[11px] uppercase text-muted-foreground">
-            <tr><th className="py-2">Name</th><th>Type</th><th>Collection</th><th>Updated</th></tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {ITEMS.map((it) => (
-              <tr key={it.name} className="hover:bg-accent/30">
-                <td className="py-3">
-                  <p className="text-sm font-medium">{it.name}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{it.desc}</p>
-                </td>
-                <td className="text-xs"><span className="rounded-md bg-secondary px-2 py-0.5">{it.type}</span></td>
-                <td className="text-xs"><span className="rounded-md bg-accent/50 px-2 py-0.5 text-accent-foreground">{it.collection}</span></td>
-                <td className="text-xs text-muted-foreground">{it.updated}</td>
-              </tr>
+        ) : (
+          <ul className="mt-4 divide-y divide-border">
+            {filtered.map((it) => (
+              <li key={it.id}>
+                <button onClick={() => open(it.id)} className="w-full flex items-start justify-between gap-4 py-3 text-left hover:bg-accent/30 rounded-lg px-2">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="rounded-lg bg-accent/50 p-2 text-primary shrink-0"><MessageSquare className="h-4 w-4" /></div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{it.title ?? "Untitled"}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{it.preview ?? "No messages yet"}</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground shrink-0">{formatWhen(it.created_at)}</span>
+                </button>
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        )}
       </section>
     </AppShell>
   );
 }
+
+function formatWhen(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString();
+}
+
+// keep Filter/Plus imports referenced
+void Filter;
