@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          code: string
+          created_at: string
+          criteria: Json
+          description: string
+          icon: string
+          id: string
+          tier: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          criteria?: Json
+          description: string
+          icon?: string
+          id?: string
+          tier?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          criteria?: Json
+          description?: string
+          icon?: string
+          id?: string
+          tier?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -31,6 +67,114 @@ export type Database = {
           created_at?: string | null
           id?: string
           title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cultural_insights: {
+        Row: {
+          body: string
+          concept: string
+          created_at: string
+          id: string
+          published_on: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          concept: string
+          created_at?: string
+          id?: string
+          published_on?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          concept?: string
+          created_at?: string
+          id?: string
+          published_on?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hiring_posts: {
+        Row: {
+          company: string
+          created_at: string
+          id: string
+          location: string
+          published_on: string
+          role: string
+          tags: string[]
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          id?: string
+          location: string
+          published_on?: string
+          role: string
+          tags?: string[]
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          id?: string
+          location?: string
+          published_on?: string
+          role?: string
+          tags?: string[]
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      journeys: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          last_active_at: string
+          milestone_count: number
+          progress_pct: number
+          subtitle: string | null
+          target_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          milestone_count?: number
+          progress_pct?: number
+          subtitle?: string | null
+          target_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          milestone_count?: number
+          progress_pct?: number
+          subtitle?: string | null
+          target_date?: string | null
+          title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -67,6 +211,42 @@ export type Database = {
           },
         ]
       }
+      phrases: {
+        Row: {
+          created_at: string
+          cultural_note: string | null
+          id: string
+          kanji: string
+          level: string
+          meaning: string
+          published_on: string
+          romaji: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cultural_note?: string | null
+          id?: string
+          kanji: string
+          level?: string
+          meaning: string
+          published_on?: string
+          romaji: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cultural_note?: string | null
+          id?: string
+          kanji?: string
+          level?: string
+          meaning?: string
+          published_on?: string
+          romaji?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -97,6 +277,167 @@ export type Database = {
           id?: string
           location?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          id: string
+          progress: Json
+          unlocked_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          id?: string
+          progress?: Json
+          unlocked_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          progress?: Json
+          unlocked_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_documents: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_memory: {
+        Row: {
+          active: boolean
+          category: string
+          confidence: number
+          created_at: string
+          fact: string
+          id: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          confidence?: number
+          created_at?: string
+          fact: string
+          id?: string
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          confidence?: number
+          created_at?: string
+          fact?: string
+          id?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_plans: {
+        Row: {
+          billing_date: string | null
+          created_at: string
+          credits_limit: number
+          credits_used: number
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_date?: string | null
+          created_at?: string
+          credits_limit?: number
+          credits_used?: number
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_date?: string | null
+          created_at?: string
+          credits_limit?: number
+          credits_used?: number
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          last_active_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
