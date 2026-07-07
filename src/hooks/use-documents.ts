@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import type { Database } from "@/integrations/supabase/types";
+
+type Json = Database["public"]["Tables"]["user_documents"]["Row"]["content"];
 
 export type UserDocument = {
   id: string;
   user_id: string;
   type: string;
   title: string;
-  content: Record<string, unknown>;
+  content: Json;
   updated_at: string;
 };
 
