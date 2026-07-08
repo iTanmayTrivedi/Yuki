@@ -115,14 +115,14 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground">
+    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       {mobileSidebar && (
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileSidebar(false)}>
           <div className="absolute inset-0 bg-black/40" />
         </div>
       )}
       <aside
-        className={`${mobileSidebar ? "flex" : "hidden"} md:flex fixed md:static inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r border-border bg-sidebar`}
+        className={`${mobileSidebar ? "flex" : "hidden"} md:flex fixed md:static inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r border-border bg-sidebar h-screen md:h-full overflow-hidden`}
       >
         <div className="flex items-center gap-2 px-5 py-5">
           <img src={logo.url} alt="Yuki" className="h-8 w-8" />
@@ -248,7 +248,7 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 flex flex-col">
+      <main className="flex-1 min-w-0 flex flex-col h-full overflow-y-auto">
         <header className="flex items-center justify-between gap-2 px-4 md:px-6 py-4">
           <button className="md:hidden rounded-full border border-border bg-background p-2" onClick={() => setMobileSidebar(true)} aria-label="Menu">
             <Menu className="h-4 w-4" />
