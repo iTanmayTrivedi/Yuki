@@ -17,7 +17,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import logo from "@/assets/yuki-logo.png.asset.json";
+import logo from "@/assets/yuki-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useChatStore } from "@/lib/chat-store";
 import { useAuth } from "@/hooks/use-auth";

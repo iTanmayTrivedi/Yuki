@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Search, Filter, Star, Share2, MoreHorizontal, Lock, Trash2 } from "lucide-react";
-import logo from "@/assets/yuki-logo.png.asset.json";
+import logo from "@/assets/yuki-logo.png";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";

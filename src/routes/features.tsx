@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Plane, BookOpen, Briefcase, GraduationCap, Building2, Compass, Shield, Brain, MessageSquare, Sparkles, Clock, Languages, Database, Zap } from "lucide-react";
-import logo from "@/assets/yuki-logo.png.asset.json";
+import logo from "@/assets/yuki-logo.png";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/features")({

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Plane, GraduationCap, Briefcase, Home as HomeIcon, Languages, Heart } from "lucide-react";
-import logo from "@/assets/yuki-logo.png.asset.json";
+import logo from "@/assets/yuki-logo.png";
 import { useAuth } from "@/hooks/use-auth";
 import { useChatStore } from "@/lib/chat-store";
 

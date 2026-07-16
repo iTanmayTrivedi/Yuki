@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { Send, Paperclip, Globe, Mic, Square, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useChatStore, type ChatMessage } from "@/lib/chat-store";
-import logo from "@/assets/yuki-logo.png.asset.json";
+import logo from "@/assets/yuki-logo.png";
 import { useAuth } from "@/hooks/use-auth";
 
 export function ChatWindow({ header }: { header?: React.ReactNode }) {

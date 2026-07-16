@@ -5,7 +5,7 @@ import {
   Compass, MapPin, ArrowRight, Plane, GraduationCap, Building2,
 } from "lucide-react";
 import fuji from "@/assets/fuji-hero.jpg";
-import logo from "@/assets/yuki-logo.png.asset.json";
+import logo from "@/assets/yuki-logo.png";
 import { useAuth } from "@/hooks/use-auth";
 import { useChatStore } from "@/lib/chat-store";
 

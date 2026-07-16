@@ -4,7 +4,7 @@ import { Sparkles, BookOpen, ShieldCheck, User as UserIcon, Mail, Lock, Eye, Eye
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import fuji from "@/assets/fuji-hero.jpg";
-import logo from "@/assets/yuki-logo.png.asset.json";
+import logo from "@/assets/yuki-logo.png";
 
 export const Route = createFileRoute("/auth")({ component: AuthPage });
 
