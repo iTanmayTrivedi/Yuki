@@ -125,7 +125,7 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
         className={`${mobileSidebar ? "flex" : "hidden"} md:flex fixed md:static inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r border-border bg-sidebar h-screen md:h-full overflow-hidden`}
       >
         <div className="flex items-center gap-2 px-5 py-5">
-          <img src={logo.url} alt="Yuki" className="h-8 w-8" />
+          <img src={logo} alt="Yuki" className="h-8 w-8" />
           <span className="text-lg font-semibold tracking-tight">yuki ai</span>
           <button className="md:hidden ml-auto" onClick={() => setMobileSidebar(false)} aria-label="Close menu">
             <X className="h-4 w-4" />
@@ -254,7 +254,7 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
             <Menu className="h-4 w-4" />
           </button>
           <div className="md:hidden flex items-center gap-2">
-            <img src={logo.url} alt="" className="h-6 w-6" />
+            <img src={logo} alt="" className="h-6 w-6" />
             <span className="text-sm font-semibold">yuki ai</span>
           </div>
           <div className="flex items-center gap-2 ml-auto">

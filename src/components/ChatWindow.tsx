@@ -129,7 +129,7 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
         ))}
         {pending && (
           <div className="flex items-start gap-3">
-            <img src={logo.url} alt="" className="h-8 w-8 rounded-full bg-white p-1 border border-border" />
+            <img src={logo} alt="" className="h-8 w-8 rounded-full bg-white p-1 border border-border" />
             <div className="rounded-2xl bg-accent/40 px-4 py-3 text-sm text-muted-foreground">
               <span className="inline-flex gap-1">
                 <Dot /> <Dot delay={0.15} /> <Dot delay={0.3} />
@@ -159,7 +159,7 @@ export function ChatWindow({ header }: { header?: React.ReactNode }) {
             </div>
           )}
           <div className="flex items-center gap-2">
-            <img src={logo.url} alt="" className="h-5 w-5" />
+            <img src={logo} alt="" className="h-5 w-5" />
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -248,7 +248,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   }
   return (
     <div className="flex items-start gap-3">
-      <img src={logo.url} alt="" className="h-8 w-8 rounded-full bg-white p-1 border border-border shrink-0" />
+      <img src={logo} alt="" className="h-8 w-8 rounded-full bg-white p-1 border border-border shrink-0" />
       <div className="max-w-[80%] rounded-2xl bg-background border border-border px-4 py-3 text-sm">
         <div className="prose prose-sm max-w-none [&_p]:my-1 [&_ul]:my-2">
           <ReactMarkdown>{message.content}</ReactMarkdown>

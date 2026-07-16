@@ -144,7 +144,7 @@ function HistoryPage() {
                       </div>
                     ) : (
                       <div key={m.id} className="flex items-start gap-3">
-                        <img src={logo.url} alt="" className="h-7 w-7 rounded-full bg-white p-1 border border-border" />
+                        <img src={logo} alt="" className="h-7 w-7 rounded-full bg-white p-1 border border-border" />
                         <div className="rounded-2xl border border-border bg-background px-4 py-3 text-sm max-w-[80%] whitespace-pre-wrap">{m.content}</div>
                       </div>
                     ),

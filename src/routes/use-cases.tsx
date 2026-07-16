@@ -132,7 +132,7 @@ function Header({ onStart }: { onStart: () => void }) {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-[var(--washi)]/85 backdrop-blur">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between px-8 py-5">
         <Link to="/" className="flex items-center gap-2.5">
-          <img src={logo.url} alt="Yuki" className="h-7 w-7" />
+          <img src={logo} alt="Yuki" className="h-7 w-7" />
           <span className="font-serif text-xl italic tracking-tight text-[var(--sumi)]">yuki<span className="text-[var(--shu)]">.</span></span>
         </Link>
         <nav className="hidden items-center gap-10 text-[13px] tracking-wide text-muted-foreground md:flex">

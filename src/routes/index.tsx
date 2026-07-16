@@ -250,7 +250,7 @@ function SiteHeader({ dark, setDark, onStart }: { dark: boolean; setDark: (v: bo
     <header className="sticky top-0 z-40 border-b border-border/60 bg-[var(--washi)]/85 backdrop-blur">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between px-8 py-5">
         <Link to="/" className="flex items-center gap-2.5">
-          <img src={logo.url} alt="Yuki" className="h-7 w-7" />
+          <img src={logo} alt="Yuki" className="h-7 w-7" />
           <span className="font-serif text-xl italic tracking-tight text-[var(--sumi)]">yuki<span className="text-[var(--shu)]">.</span></span>
         </Link>
         <nav className="hidden items-center gap-10 text-[13px] tracking-wide text-muted-foreground md:flex">
@@ -309,7 +309,7 @@ function SiteFooter() {
       <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-10 px-8 py-14 md:grid-cols-5">
         <div className="col-span-2">
           <div className="flex items-center gap-2.5">
-            <img src={logo.url} alt="Yuki" className="h-7 w-7" />
+            <img src={logo} alt="Yuki" className="h-7 w-7" />
             <span className="font-serif text-xl italic text-[var(--sumi)]">yuki<span className="text-[var(--shu)]">.</span></span>
           </div>
           <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-muted-foreground">

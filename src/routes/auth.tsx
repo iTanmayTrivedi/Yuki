@@ -67,7 +67,7 @@ function AuthPage() {
         <div className="flex items-center justify-center order-2 lg:order-1">
           <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-sm">
             <div className="flex items-center gap-2.5 mb-6 lg:hidden">
-              <img src={logo.url} alt="Yuki" className="h-8 w-8" />
+              <img src={logo} alt="Yuki" className="h-8 w-8" />
               <span className="text-xl font-semibold tracking-tight">yuki</span>
             </div>
             <div className="text-center">
@@ -165,7 +165,7 @@ function FeatureShowcase() {
   return (
     <div className="relative hidden lg:flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(240_60%_97%)] via-white to-[hsl(260_60%_96%)] p-10 order-1 lg:order-2 border border-border">
       <div className="flex items-center gap-2.5">
-        <img src={logo.url} alt="Yuki" className="h-10 w-10" />
+        <img src={logo} alt="Yuki" className="h-10 w-10" />
         <span className="text-2xl font-semibold tracking-tight">yuki</span>
       </div>
 
