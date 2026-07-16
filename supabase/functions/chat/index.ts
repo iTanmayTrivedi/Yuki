@@ -8,9 +8,7 @@ const corsHeaders = {
 };
 
 const MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemini-2.0-flash-exp:free",
-  "mistralai/mistral-7b-instruct:free",
+  "llama-3.3-70b-versatile",
 ];
 
 const SYSTEM_PROMPT =
@@ -25,11 +23,11 @@ Deno.serve(async (req) => {
     const { conversation_id, message } = await req.json();
     if (!message) {
       return json({ error: "message is required" }, 400);
-    }
+    }  
 
-    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    const apiKey = Deno.env.get("GROQ_API_KEY");
     if (!apiKey) {
-      return json({ error: "OPENROUTER_API_KEY not configured" }, 500);
+      return json({ error: "GROQ_API_KEY not configured" }, 500);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -77,7 +75,7 @@ Deno.serve(async (req) => {
     let lastError = "";
     for (const model of MODELS) {
       const r = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
+        "https://api.groq.com/openai/v1/chat/completions",
         {
           method: "POST",
           headers: {
