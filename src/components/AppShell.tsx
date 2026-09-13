@@ -10,7 +10,6 @@ import {
   MoreHorizontal,
   Plus,
   Settings,
-  Sparkles,
   Sun,
   Trash2,
   User,
@@ -200,16 +199,7 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
           </ul>
         </div>
 
-        <div className="mt-auto p-3 space-y-3">
-          <div className="rounded-xl border border-border bg-gradient-to-br from-accent/60 to-secondary p-4">
-            <div className="flex items-center gap-1 text-sm font-semibold">Go Premium <Sparkles className="h-3.5 w-3.5 text-primary" /></div>
-            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-              Unlock Yuki's full potential with advanced models, file uploads, longer conversations and more.
-            </p>
-            <button className="mt-3 w-full rounded-md bg-primary py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition">
-              Upgrade Now
-            </button>
-          </div>
+        <div className="mt-auto p-3">
           <div className="relative flex items-center gap-2 rounded-lg border border-border bg-background p-2">
             <button
               onClick={() => void navigate({ to: "/profile" })}
