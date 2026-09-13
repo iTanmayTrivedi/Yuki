@@ -6,7 +6,19 @@ import { useAuth } from "@/hooks/use-auth";
 import fuji from "@/assets/fuji-hero.jpg";
 import logo from "@/assets/yuki-logo.png";
 
-export const Route = createFileRoute("/auth")({ component: AuthPage });
+export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: "Sign in to Yuki AI" },
+      { name: "description", content: "Sign in or create your Yuki AI account to continue exploring Japan." },
+      { property: "og:title", content: "Sign in to Yuki AI" },
+      { property: "og:description", content: "Continue your personalized Japan journey with Yuki AI." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: AuthPage,
+});
 
 function AuthPage() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
@@ -82,7 +94,7 @@ function AuthPage() {
             <div className="mt-6 space-y-2.5">
               <button
                 onClick={() => void oauth("google")}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background py-2.5 text-sm font-medium hover:bg-accent/40 transition"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-border bg-background py-2.5 text-sm font-medium shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent/40 hover:shadow-md active:translate-y-0 active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <GoogleIcon /> Continue with Google
               </button>
@@ -109,7 +121,7 @@ function AuthPage() {
                 <Field label="Password">
                   <Lock className="h-4 w-4 text-muted-foreground" />
                   <input type={showPw ? "text" : "password"} required minLength={mode === "signup" ? 8 : 1} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={mode === "signup" ? "Create a password" : "Enter your password"} className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-                  <button type="button" onClick={() => setShowPw((v) => !v)} className="text-muted-foreground">
+                  <button type="button" onClick={() => setShowPw((v) => !v)} className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={showPw ? "Hide password" : "Show password"}>
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </Field>
@@ -121,7 +133,7 @@ function AuthPage() {
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full rounded-lg bg-indigo-500 py-3 text-sm font-medium text-white hover:bg-indigo-600 disabled:opacity-60 transition"
+                className="w-full cursor-pointer rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-lg active:translate-y-0 active:scale-[0.99] active:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 {busy ? "Please wait..." : mode === "signup" ? "Create account" : "Log in"}
               </button>
@@ -131,14 +143,14 @@ function AuthPage() {
               {mode === "signup" ? "Already have an account?" : "New to Yuki?"}{" "}
               <button
                 onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setError(null); }}
-                className="font-semibold text-indigo-500 hover:underline"
+                className="cursor-pointer rounded-sm font-semibold text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {mode === "signup" ? "Log in" : "Create an account"}
               </button>
             </p>
 
             <p className="mt-6 text-center text-[11px] text-muted-foreground">
-              By continuing, you agree to Yuki's <Link to="/" className="text-indigo-500">Terms</Link> and <Link to="/" className="text-indigo-500">Privacy Policy</Link>.
+              By continuing, you agree to Yuki's <Link to="/" className="text-primary hover:underline">Terms</Link> and <Link to="/" className="text-primary hover:underline">Privacy Policy</Link>.
             </p>
           </div>
         </div>
@@ -195,7 +207,7 @@ function FeatureShowcase() {
                 onMouseEnter={() => setActive(i)}
                 onFocus={() => setActive(i)}
                 onClick={() => setActive(i)}
-                className={`group flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                className={`group flex cursor-pointer flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   i === active ? "border-indigo-400 bg-white shadow-md" : "border-border bg-white/60 hover:bg-white"
                 }`}
               >
@@ -233,7 +245,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <label className="block">
       <span className="text-xs font-medium text-foreground">{label}</span>
-      <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5">
+      <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/20">
         {children}
       </div>
     </label>
