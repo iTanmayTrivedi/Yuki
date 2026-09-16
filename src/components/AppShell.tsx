@@ -116,17 +116,17 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       {mobileSidebar && (
-        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileSidebar(false)}>
+        <div className="fixed inset-0 z-40 min-[700px]:hidden" onClick={() => setMobileSidebar(false)}>
           <div className="absolute inset-0 bg-black/40" />
         </div>
       )}
       <aside
-        className={`${mobileSidebar ? "flex" : "hidden"} md:flex fixed md:static inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r border-border bg-sidebar h-screen md:h-full overflow-hidden`}
+        className={`${mobileSidebar ? "flex" : "hidden"} fixed inset-y-0 left-0 z-50 h-screen w-64 shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar min-[700px]:sticky min-[700px]:top-0 min-[700px]:flex min-[700px]:w-56 lg:w-64`}
       >
         <div className="flex items-center gap-2 px-5 py-5">
           <img src={logo} alt="Yuki" className="h-8 w-8" />
-          <span className="text-lg font-semibold tracking-tight">yuki ai</span>
-          <button className="md:hidden ml-auto" onClick={() => setMobileSidebar(false)} aria-label="Close menu">
+          <span className="font-serif text-xl italic text-foreground">yuki<span className="text-primary">.</span></span>
+          <button className="ml-auto min-[700px]:hidden" onClick={() => setMobileSidebar(false)} aria-label="Close menu">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -239,21 +239,21 @@ export function AppShell({ children, rightPanel }: { children: ReactNode; rightP
       </aside>
 
       <main className="flex-1 min-w-0 flex flex-col h-full overflow-y-auto">
-        <header className="flex items-center justify-between gap-2 px-4 md:px-6 py-4">
-          <button className="md:hidden rounded-full border border-border bg-background p-2" onClick={() => setMobileSidebar(true)} aria-label="Menu">
+        <header className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 py-4 min-[700px]:flex min-[700px]:px-5 lg:px-6">
+          <button className="rounded-full border border-border bg-background p-2 min-[700px]:hidden" onClick={() => setMobileSidebar(true)} aria-label="Menu">
             <Menu className="h-4 w-4" />
           </button>
-          <div className="md:hidden flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2 min-[700px]:hidden">
             <img src={logo} alt="" className="h-6 w-6" />
-            <span className="text-sm font-semibold">yuki ai</span>
+            <span className="truncate font-serif text-lg italic text-foreground">yuki<span className="text-primary">.</span></span>
           </div>
           <div className="flex items-center gap-2 ml-auto">
           <button className="rounded-full border border-border bg-background p-2"><Bell className="h-4 w-4" /></button>
           <button className="rounded-full border border-border bg-background p-2"><Sun className="h-4 w-4" /></button>
           </div>
         </header>
-        <div className="flex-1 min-w-0 flex pb-16 md:pb-0">
-          <div className="flex-1 min-w-0 px-4 md:px-6 pb-8">{children}</div>
+        <div className="flex min-h-0 min-w-0 flex-1 pb-16 min-[700px]:pb-0">
+          <div className="min-w-0 flex-1 px-4 pb-8 min-[700px]:px-5 lg:px-6">{children}</div>
           {rightPanel && <div className="hidden xl:block w-[340px] shrink-0 border-l border-border bg-sidebar px-5 py-6">{rightPanel}</div>}
         </div>
       </main>
