@@ -12,7 +12,7 @@ const items = [
 export function MobileNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur min-[700px]:hidden">
       <ul className="grid grid-cols-5">
         {items.map(({ to, label, icon: Icon }) => {
           const active = pathname === to || pathname.startsWith(to + "/");
