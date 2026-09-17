@@ -20,6 +20,7 @@ import { useChatStore } from "@/lib/chat-store";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
+import { DiscoverPanel } from "@/components/DiscoverPanel";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -108,7 +109,7 @@ function Home() {
   };
 
   return (
-    <AppShell>
+    <AppShell rightPanel={<DiscoverPanel />}>
       <div className="relative">
         <div className="relative overflow-hidden rounded-3xl border border-border">
           <img src={fuji} alt="Mount Fuji with cherry blossoms" className="h-[280px] w-full object-cover object-center" />
@@ -167,6 +168,9 @@ function Home() {
           <h2 className="mt-10 text-sm font-semibold">Ask anything. Yuki can help with:</h2>
           <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
             {HELP.map((h) => <div key={h.title} className="rounded-xl border border-border bg-card p-3"><div className="text-lg">{h.icon}</div><p className="mt-2 text-xs font-semibold">{h.title}</p><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{h.desc}</p></div>)}
+          </div>
+          <div className="mx-auto mt-12 max-w-2xl border-t border-border pt-8 xl:hidden">
+            <DiscoverPanel />
           </div>
         </div>
       </div>

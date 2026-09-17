@@ -1,35 +1,44 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import type { CulturalInsight, HiringPost, Phrase } from "@/types/discover.types";
+import { getDiscoverFeed } from "@/lib/discover.functions";
+import type { Phrase } from "@/types/discover.types";
 
 export function useDiscoverFeed() {
-  const [phrase, setPhrase] = useState<Phrase | null>(null);
-  const [hiring, setHiring] = useState<HiringPost[]>([]);
-  const [insight, setInsight] = useState<CulturalInsight | null>(null);
-  const [loading, setLoading] = useState(true);
+  const fetchDiscover = useServerFn(getDiscoverFeed);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      const [p, h, i] = await Promise.all([
-        supabase.from("phrases").select("*").order("published_on", { ascending: false }).limit(1).maybeSingle(),
-        supabase.from("hiring_posts").select("*").order("published_on", { ascending: false }).limit(5),
-        supabase.from("cultural_insights").select("*").order("published_on", { ascending: false }).limit(1).maybeSingle(),
-      ]);
-      if (cancelled) return;
-      setPhrase((p.data as Phrase) ?? null);
-      setHiring((h.data as HiringPost[]) ?? []);
-      setInsight((i.data as CulturalInsight) ?? null);
-      setLoading(false);
-    }
-    void load();
-    const timer = setInterval(load, 1000 * 60 * 60 * 6);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, []);
+  const feedQuery = useQuery({
+    queryKey: ["discover-feed"],
+    queryFn: () => fetchDiscover(),
+    staleTime: 1000 * 60 * 15,
+    refetchInterval: 1000 * 60 * 30,
+    retry: 1,
+  });
 
-  return { phrase, hiring, insight, loading };
+  const phraseQuery = useQuery({
+    queryKey: ["discover-phrase"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("phrases")
+        .select("*")
+        .order("published_on", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as Phrase | null) ?? null;
+    },
+    staleTime: 1000 * 60 * 60,
+  });
+
+  return {
+    phrase: phraseQuery.data ?? null,
+    hiring: feedQuery.data?.hiring ?? [],
+    insight: feedQuery.data?.insight ?? null,
+    weather: feedQuery.data?.weather ?? null,
+    updatedAt: feedQuery.data?.updated_at ?? null,
+    warnings: feedQuery.data?.warnings ?? [],
+    loading: feedQuery.isPending || phraseQuery.isPending,
+    error: feedQuery.error instanceof Error ? feedQuery.error.message : null,
+    refresh: () => feedQuery.refetch(),
+  };
 }
