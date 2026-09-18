@@ -56,7 +56,7 @@ function Landing() {
           <div className="relative">
             <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-8 bg-[var(--shu)]" />
-              <span>001 &nbsp;·&nbsp; Japan-specialist AI</span>
+              <span>Japan-specialist AI</span>
             </div>
 
             <h1 className="mt-8 font-serif text-[76px] leading-[0.98] tracking-[-0.02em] text-[var(--sumi)] md:text-[92px]">
@@ -149,7 +149,7 @@ function Landing() {
         <div className="mx-auto max-w-[1240px] px-8 py-24">
           <div className="flex items-end justify-between gap-8">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">002 · Capabilities</p>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Capabilities</p>
               <h2 className="mt-4 font-serif text-5xl leading-[1] tracking-tight text-[var(--sumi)]">Six directions, one companion.</h2>
             </div>
             <Link to="/features" className="hidden text-[13px] tracking-wide text-muted-foreground underline underline-offset-[6px] decoration-[var(--shu)] hover:text-foreground md:inline">All features →</Link>
@@ -169,7 +169,7 @@ function Landing() {
       {/* USE CASES — editorial three column */}
       <section id="usecases" className="border-b border-border/60 bg-white">
         <div className="mx-auto max-w-[1240px] px-8 py-24">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">003 · Use cases</p>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Use cases</p>
           <h2 className="mt-4 max-w-2xl font-serif text-5xl leading-[1] tracking-tight text-[var(--sumi)]">
             Written for the people <em className="italic text-[var(--shu)]">actually</em> going.
           </h2>
@@ -204,7 +204,7 @@ function Landing() {
       <section className="border-b border-border/60">
         <div className="mx-auto max-w-[1240px] px-8 py-28">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-[1fr_2fr]">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">004 · Philosophy</p>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Philosophy</p>
             <div>
               <p className="font-serif text-4xl leading-[1.15] text-[var(--sumi)] md:text-5xl">
                 &ldquo;A general chatbot answers <em className="italic">how do I move to Japan</em> with
