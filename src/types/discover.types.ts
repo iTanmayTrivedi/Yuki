@@ -17,6 +17,7 @@ export type HiringPost = {
   tags: string[];
   published_on: string;
   source?: string;
+  source_url?: string;
 };
 
 export type CulturalInsight = {

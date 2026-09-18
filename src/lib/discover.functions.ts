@@ -12,9 +12,10 @@ export const getDiscoverFeed = createServerFn({ method: "GET" })
     ]);
 
     const warnings: string[] = [];
-    const [weatherResult, hiringResult] = await Promise.allSettled([
+    const [weatherResult, hiringResult, cultureResult] = await Promise.allSettled([
       fetchTokyoWeather(),
       fetchJapanHiring(),
+      culture.fetchCulturalInsight(),
     ]);
 
     const weather = weatherResult.status === "fulfilled" ? weatherResult.value : null;
@@ -45,28 +46,11 @@ export const getDiscoverFeed = createServerFn({ method: "GET" })
       if (hiring.length === 0) warnings.push("Hiring updates are temporarily unavailable.");
     }
 
-    const { data: storedInsight } = await context.supabase
-      .from("cultural_insights")
-      .select("*")
-      .order("published_on", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    let insight: CulturalInsight | null = storedInsight ? { ...storedInsight, source: "Yuki cultural desk" } : null;
-
-    if (storedInsight?.published_on !== culture.todayInJapan()) {
-      const apiKey = process.env['GROQ_API_KEY'];
-      if (apiKey) {
-        try {
-          const generated = await culture.createCulturalInsight(apiKey);
-          const { source, ...row } = generated;
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data, error } = await supabaseAdmin.from("cultural_insights").insert(row).select().single();
-          if (error) throw error;
-          insight = { ...data, source };
-        } catch (error) {
-          console.warn("[Discover] Fresh cultural insight unavailable", error);
-        }
-      }
+    let insight: CulturalInsight | null = cultureResult.status === "fulfilled" ? cultureResult.value : null;
+    if (cultureResult.status === "rejected") {
+      console.warn("[Discover] Culture unavailable", cultureResult.reason);
+      const { data } = await context.supabase.from("cultural_insights").select("*").order("published_on", { ascending: false }).limit(1).maybeSingle();
+      insight = data ? { ...data, source: "Yuki archive" } : null;
     }
     if (!insight) warnings.push("Cultural insight is temporarily unavailable.");
 

@@ -77,6 +77,7 @@ export function DiscoverPanel() {
           <h3 className="mt-3 font-serif text-lg leading-snug">{insight.title}</h3>
           <p className="mt-1 font-jp text-xs text-primary">{insight.concept}</p>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{insight.body}</p>
+          {insight.source_url && <a href={insight.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline">Read source <ExternalLink className="h-3 w-3" /></a>}
         </div>
       ) : <EmptyState icon={<Sparkles className="h-4 w-4" />} label="Today’s insight is being prepared." />}
 
