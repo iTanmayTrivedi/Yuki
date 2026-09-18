@@ -1,6 +1,7 @@
 import type { CulturalInsight } from "@/types/discover.types";
 
-type GroqResponse = { choices?: Array<{ message?: { content?: string } }> };
+type WikipediaPage = { pageid: number; title: string; extract?: string; fullurl?: string };
+type WikipediaResponse = { query?: { pages?: WikipediaPage[] } };
 
 export function todayInJapan() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -11,29 +12,39 @@ export function todayInJapan() {
   }).format(new Date());
 }
 
-export async function createCulturalInsight(apiKey: string): Promise<Omit<CulturalInsight, "id">> {
+export async function fetchCulturalInsight(): Promise<CulturalInsight> {
   const publishedOn = todayInJapan();
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      response_format: { type: "json_object" },
-      temperature: 0.35,
-      messages: [
-        {
-          role: "system",
-          content: "You are Yuki's cultural editor. Return strict JSON with title, concept, and body. Explain one specific, accurate Japanese cultural or professional practice for an international professional. The body must be two concise, practical sentences. Avoid stereotypes and generic travel advice.",
-        },
-        { role: "user", content: `Create today's cultural insight for ${publishedOn} in Japan.` },
-      ],
-    }),
+  const params = new URLSearchParams({
+    action: "query",
+    generator: "categorymembers",
+    gcmtitle: "Category:Culture of Japan",
+    gcmtype: "page",
+    gcmlimit: "40",
+    prop: "extracts|info",
+    exintro: "1",
+    explaintext: "1",
+    inprop: "url",
+    format: "json",
+    formatversion: "2",
+  });
+  const response = await fetch(`https://en.wikipedia.org/w/api.php?${params}`, {
+    headers: { "User-Agent": "YukiAI/1.0 (+https://yuki.tanmaytrivedi.dev)" },
   });
   if (!response.ok) throw new Error(`Culture provider returned ${response.status}`);
-  const completion = (await response.json()) as GroqResponse;
-  const content = completion.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Culture provider returned no content");
-  const parsed = JSON.parse(content) as { title?: string; concept?: string; body?: string };
-  if (!parsed.title || !parsed.concept || !parsed.body) throw new Error("Culture provider returned incomplete content");
-  return { title: parsed.title, concept: parsed.concept, body: parsed.body, published_on: publishedOn, source: "Yuki cultural desk" };
+  const result = (await response.json()) as WikipediaResponse;
+  const pages = (result.query?.pages ?? []).filter((page) => page.extract && page.title !== "Culture of Japan");
+  if (pages.length === 0) throw new Error("Culture provider returned no articles");
+  const seed = Number(publishedOn.replaceAll("-", ""));
+  const page = pages[seed % pages.length];
+  if (!page?.extract) throw new Error("Culture provider returned incomplete content");
+  const sentences = page.extract.match(/[^.!?]+[.!?]+/g)?.slice(0, 2).join(" ").trim() ?? page.extract.slice(0, 360);
+  return {
+    id: `wikipedia-${page.pageid}`,
+    title: page.title,
+    concept: "A daily window into Japanese culture",
+    body: sentences,
+    published_on: publishedOn,
+    source: "Wikipedia",
+    source_url: page.fullurl,
+  };
 }

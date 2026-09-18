@@ -26,6 +26,7 @@ export type CulturalInsight = {
   body: string;
   published_on: string;
   source?: string;
+  source_url?: string;
 };
 
 export type WeatherData = {
