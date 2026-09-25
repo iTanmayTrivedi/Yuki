@@ -1,12 +1,24 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, BookOpen, ShieldCheck, User as UserIcon, Mail, Lock, Eye, EyeOff, MessageSquare, Compass, Languages, Bot, Zap, MapPin } from "lucide-react";
+import { User as UserIcon, Mail, Lock, Eye, EyeOff, MessageSquare, Compass, Languages, Bot, Zap, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import fuji from "@/assets/fuji-hero.jpg";
 import logo from "@/assets/yuki-logo.png";
 
-export const Route = createFileRoute("/auth")({ component: AuthPage });
+export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: "Sign in to Yuki AI" },
+      { name: "description", content: "Sign in or create your Yuki AI account to continue exploring Japan." },
+      { property: "og:title", content: "Sign in to Yuki AI" },
+      { property: "og:description", content: "Continue your personalized Japan journey with Yuki AI." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: AuthPage,
+});
 
 function AuthPage() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
@@ -47,7 +59,7 @@ function AuthPage() {
     }
   }
 
-  async function oauth(provider: "google" | "apple") {
+  async function oauth(provider: "google") {
     setError(null);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -68,7 +80,7 @@ function AuthPage() {
           <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-sm">
             <div className="flex items-center gap-2.5 mb-6 lg:hidden">
               <img src={logo} alt="Yuki" className="h-8 w-8" />
-              <span className="text-xl font-semibold tracking-tight">yuki</span>
+              <span className="font-serif text-xl italic text-foreground">yuki<span className="text-primary">.</span></span>
             </div>
             <div className="text-center">
               <h2 className="text-2xl font-semibold tracking-tight">
@@ -82,7 +94,7 @@ function AuthPage() {
             <div className="mt-6 space-y-2.5">
               <button
                 onClick={() => void oauth("google")}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background py-2.5 text-sm font-medium hover:bg-accent/40 transition"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-border bg-background py-2.5 text-sm font-medium shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent/40 hover:shadow-md active:translate-y-0 active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <GoogleIcon /> Continue with Google
               </button>
@@ -109,7 +121,7 @@ function AuthPage() {
                 <Field label="Password">
                   <Lock className="h-4 w-4 text-muted-foreground" />
                   <input type={showPw ? "text" : "password"} required minLength={mode === "signup" ? 8 : 1} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={mode === "signup" ? "Create a password" : "Enter your password"} className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-                  <button type="button" onClick={() => setShowPw((v) => !v)} className="text-muted-foreground">
+                  <button type="button" onClick={() => setShowPw((v) => !v)} className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={showPw ? "Hide password" : "Show password"}>
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </Field>
@@ -121,7 +133,7 @@ function AuthPage() {
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full rounded-lg bg-indigo-500 py-3 text-sm font-medium text-white hover:bg-indigo-600 disabled:opacity-60 transition"
+                className="w-full cursor-pointer rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-lg active:translate-y-0 active:scale-[0.99] active:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 {busy ? "Please wait..." : mode === "signup" ? "Create account" : "Log in"}
               </button>
@@ -131,14 +143,14 @@ function AuthPage() {
               {mode === "signup" ? "Already have an account?" : "New to Yuki?"}{" "}
               <button
                 onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setError(null); }}
-                className="font-semibold text-indigo-500 hover:underline"
+                className="cursor-pointer rounded-sm font-semibold text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {mode === "signup" ? "Log in" : "Create an account"}
               </button>
             </p>
 
             <p className="mt-6 text-center text-[11px] text-muted-foreground">
-              By continuing, you agree to Yuki's <Link to="/" className="text-indigo-500">Terms</Link> and <Link to="/" className="text-indigo-500">Privacy Policy</Link>.
+              By continuing, you agree to Yuki's <Link to="/" className="text-primary hover:underline">Terms</Link> and <Link to="/" className="text-primary hover:underline">Privacy Policy</Link>.
             </p>
           </div>
         </div>
@@ -166,7 +178,7 @@ function FeatureShowcase() {
     <div className="relative hidden lg:flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(240_60%_97%)] via-white to-[hsl(260_60%_96%)] p-10 order-1 lg:order-2 border border-border">
       <div className="flex items-center gap-2.5">
         <img src={logo} alt="Yuki" className="h-10 w-10" />
-        <span className="text-2xl font-semibold tracking-tight">yuki</span>
+        <span className="font-serif text-2xl italic text-foreground">yuki<span className="text-primary">.</span></span>
       </div>
 
       <div className="relative z-10">
@@ -195,7 +207,7 @@ function FeatureShowcase() {
                 onMouseEnter={() => setActive(i)}
                 onFocus={() => setActive(i)}
                 onClick={() => setActive(i)}
-                className={`group flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                className={`group flex cursor-pointer flex-col items-start gap-2 rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   i === active ? "border-indigo-400 bg-white shadow-md" : "border-border bg-white/60 hover:bg-white"
                 }`}
               >
@@ -217,23 +229,11 @@ function FeatureShowcase() {
   );
 }
 
-function Feature({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <li className="flex items-start gap-3">
-      <div className="rounded-xl bg-white border border-border p-2.5 text-indigo-500 shadow-sm">{icon}</div>
-      <div>
-        <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs text-muted-foreground">{desc}</p>
-      </div>
-    </li>
-  );
-}
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="text-xs font-medium text-foreground">{label}</span>
-      <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5">
+      <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5 transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/20">
         {children}
       </div>
     </label>
@@ -247,14 +247,6 @@ function GoogleIcon() {
       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
       <path fill="#FBBC05" d="M5.84 14.1a6.99 6.99 0 010-4.2V7.06H2.18a11 11 0 000 9.88l3.66-2.84z" />
       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z" />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden fill="currentColor">
-      <path d="M16.365 1.43c0 1.14-.42 2.22-1.12 3.03-.76.87-2 1.55-3.02 1.47-.13-1.09.42-2.24 1.09-2.98.75-.83 2.02-1.44 3.05-1.52zM20.5 17.28c-.56 1.29-.83 1.87-1.55 3.01-1 1.59-2.41 3.57-4.15 3.58-1.55.02-1.95-1-4.05-.99-2.1.01-2.54 1.01-4.1.99-1.74-.01-3.07-1.79-4.07-3.38C.13 16.32-.16 11.04 2.14 8.24c1.63-1.99 4.21-3.16 6.63-3.16 2.47 0 4.02 1.35 6.06 1.35 1.98 0 3.19-1.35 6.05-1.35 2.16 0 4.44 1.18 6.06 3.22-5.33 2.92-4.46 10.54-6.44 8.98z" />
     </svg>
   );
 }

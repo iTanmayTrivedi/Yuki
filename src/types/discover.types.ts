@@ -16,6 +16,7 @@ export type HiringPost = {
   url: string | null;
   tags: string[];
   published_on: string;
+  source?: string;
 };
 
 export type CulturalInsight = {
@@ -24,6 +25,8 @@ export type CulturalInsight = {
   concept: string;
   body: string;
   published_on: string;
+  source?: string;
+  source_url?: string;
 };
 
 export type WeatherData = {
@@ -32,4 +35,17 @@ export type WeatherData = {
   condition: string;
   high_c: number;
   low_c: number;
+  weather_code: number;
+  is_day: boolean;
+  observed_at: string;
+  source: string;
+  source_url: string;
+};
+
+export type DiscoverFeed = {
+  weather: WeatherData | null;
+  hiring: HiringPost[];
+  insight: CulturalInsight | null;
+  updated_at: string;
+  warnings: string[];
 };

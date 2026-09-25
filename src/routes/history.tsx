@@ -1,170 +1,120 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Lock, MessageSquare, Search, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { Search, Filter, Star, Share2, MoreHorizontal, Lock, Trash2 } from "lucide-react";
 import logo from "@/assets/yuki-logo.png";
-import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useChatStore } from "@/lib/chat-store";
 
-export const Route = createFileRoute("/history")({ component: HistoryPage });
+export const Route = createFileRoute("/history")({
+  head: () => ({
+    meta: [
+      { title: "Chat History | Yuki AI" },
+      { name: "description", content: "Review and continue your private conversations with Yuki AI." },
+      { property: "og:title", content: "Chat History | Yuki AI" },
+      { property: "og:description", content: "Review your private Yuki AI conversation history." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: HistoryPage,
+});
 
 type Convo = { id: string; title: string | null; created_at: string | null };
 type Msg = { id: string; role: string; content: string; created_at: string | null };
 
 function HistoryPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { setConversation, setMessages: setChatMessages } = useChatStore();
   const [convos, setConvos] = useState<Convo[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [query, setQuery] = useState("");
+  const [loadingList, setLoadingList] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+
+  const loadConversations = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase.from("conversations").select("id, title, created_at").order("created_at", { ascending: false });
+    if (error) console.error("[History] conversations error", error);
+    const next = data ?? [];
+    setConvos(next);
+    setActiveId((current) => current && next.some((item) => item.id === current) ? current : next[0]?.id ?? null);
+    setLoadingList(false);
+  }, [user]);
+
+  const loadMessages = useCallback(async (conversationId: string) => {
+    setLoadingMessages(true);
+    const { data, error } = await supabase.from("messages").select("id, role, content, created_at").eq("conversation_id", conversationId).order("created_at", { ascending: true });
+    if (error) console.error("[History] messages error", error);
+    setMessages(data ?? []);
+    setLoadingMessages(false);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
-    let cancelled = false;
-    async function load() {
-      const { data } = await supabase
-        .from("conversations")
-        .select("id, title, created_at")
-        .order("created_at", { ascending: false });
-      if (!cancelled && data) {
-        setConvos(data);
-        if (!activeId && data.length) setActiveId(data[0].id);
-      }
-    }
-    void load();
-    const ch = supabase
-      .channel("conversations-history")
-      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => void load())
-      .subscribe();
-    return () => { cancelled = true; void supabase.removeChannel(ch); };
-  }, [user, activeId]);
+    void loadConversations();
+    const channel = supabase.channel(`history-conversations-${user.id}`).on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => void loadConversations()).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [loadConversations, user]);
 
   useEffect(() => {
     if (!activeId) { setMessages([]); return; }
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select("id, role, content, created_at")
-        .eq("conversation_id", activeId)
-        .order("created_at", { ascending: true });
-      if (!cancelled && data) setMessages(data);
-    })();
-    return () => { cancelled = true; };
-  }, [activeId]);
+    void loadMessages(activeId);
+    const channel = supabase.channel(`history-messages-${activeId}`).on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` }, () => void loadMessages(activeId)).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [activeId, loadMessages]);
 
   async function del(id: string) {
-    if (!confirm("Delete this chat?")) return;
-    await supabase.from("conversations").delete().eq("id", id);
-    setConvos((p) => p.filter((c) => c.id !== id));
-    if (activeId === id) setActiveId(null);
+    if (!confirm("Delete this chat? This cannot be undone.")) return;
+    const { error } = await supabase.from("conversations").delete().eq("id", id);
+    if (error) { console.error("[History] delete error", error); return; }
+    const remaining = convos.filter((conversation) => conversation.id !== id);
+    setConvos(remaining);
+    if (activeId === id) setActiveId(remaining[0]?.id ?? null);
   }
 
-  const filtered = convos.filter((c) => (c.title ?? "").toLowerCase().includes(query.toLowerCase()));
+  function continueChat() {
+    if (!activeId) return;
+    setChatMessages([]);
+    setConversation(activeId);
+    void navigate({ to: "/chat" });
+  }
+
+  const filtered = useMemo(() => convos.filter((conversation) => (conversation.title ?? "").toLowerCase().includes(query.trim().toLowerCase())), [convos, query]);
   const grouped = groupByDay(filtered);
-  const active = convos.find((c) => c.id === activeId) ?? null;
+  const active = convos.find((conversation) => conversation.id === activeId) ?? null;
 
   return (
     <AppShell>
-      <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-0 h-[calc(100vh-120px)] md:h-[calc(100vh-80px)] -mx-4 md:-mx-6">
-        <aside className="border-r border-border bg-background p-4 overflow-y-auto">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold">History</h1>
-            <button className="rounded-md border border-border p-1.5"><Filter className="h-3.5 w-3.5" /></button>
+      <div className="grid h-[calc(100vh-120px)] grid-cols-1 gap-0 overflow-hidden md:h-[calc(100vh-80px)] md:grid-cols-[300px_1fr] -mx-4 md:-mx-6">
+        <aside className={`${active ? "hidden md:block" : "block"} overflow-y-auto border-r border-border bg-background p-4`}>
+          <h1 className="text-xl font-semibold">History</h1>
+          <p className="mt-1 text-xs text-muted-foreground">Your private conversation archive.</p>
+          <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-xs text-muted-foreground focus-within:border-primary/40">
+            <Search className="h-3.5 w-3.5" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search history" className="min-w-0 flex-1 bg-transparent outline-none" />
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">Your past conversations.</p>
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground">
-            <Search className="h-3.5 w-3.5" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search history" className="flex-1 bg-transparent outline-none" />
-          </div>
-          <div className="mt-4 space-y-4">
-            {filtered.length === 0 && <p className="text-xs text-muted-foreground">No history yet.</p>}
-            {grouped.map((g) => (
-              <div key={g.label}>
-                <p className="text-[11px] font-semibold text-muted-foreground">{g.label}</p>
-                <ul className="mt-2 space-y-1">
-                  {g.items.map((it) => (
-                    <li key={it.id}>
-                      <div
-                        onClick={() => setActiveId(it.id)}
-                        className={`group w-full text-left rounded-lg p-2.5 cursor-pointer ${activeId === it.id ? "bg-accent" : "hover:bg-accent/40"}`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-medium truncate">{it.title ?? "Untitled"}</span>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span className="text-[10px] text-muted-foreground group-hover:hidden">{formatWhen(it.created_at)}</span>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); void del(it.id); }}
-                              className="hidden group-hover:inline-flex rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                              aria-label="Delete chat"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          {loadingList ? <div className="mt-4 space-y-2">{[0, 1, 2].map((item) => <div key={item} className="h-12 animate-pulse rounded-lg bg-muted" />)}</div> : (
+            <div className="mt-5 space-y-5">
+              {filtered.length === 0 && <div className="py-10 text-center"><MessageSquare className="mx-auto h-6 w-6 text-muted-foreground" /><p className="mt-2 text-xs text-muted-foreground">{query ? "No matching conversations." : "No history yet."}</p></div>}
+              {grouped.map((group) => <div key={group.label}><p className="text-[11px] font-semibold uppercase text-muted-foreground">{group.label}</p><ul className="mt-2 space-y-1">{group.items.map((item) => <li key={item.id} className="group flex items-center"><button onClick={() => setActiveId(item.id)} className={`min-w-0 flex-1 cursor-pointer rounded-lg p-2.5 text-left transition ${activeId === item.id ? "bg-accent" : "hover:bg-accent/40"}`}><span className="block truncate text-xs font-medium">{item.title ?? "Untitled"}</span><span className="mt-1 block text-[10px] text-muted-foreground">{formatWhen(item.created_at)}</span></button><button onClick={() => void del(item.id)} aria-label={`Delete ${item.title ?? "conversation"}`} className="cursor-pointer rounded-md p-2 text-muted-foreground opacity-100 transition hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"><Trash2 className="h-3.5 w-3.5" /></button></li>)}</ul></div>)}
+            </div>
+          )}
         </aside>
 
-        <section className="bg-background p-6 overflow-y-auto">
-          {!active ? (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              Select a chat to view its history
+        <section className={`${active ? "block" : "hidden md:block"} overflow-y-auto bg-background p-4 sm:p-6`}>
+          {!active ? <div className="flex h-full flex-col items-center justify-center text-center"><MessageSquare className="h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm font-medium">Select a conversation</p><p className="mt-1 text-xs text-muted-foreground">Its complete history will appear here.</p></div> : <>
+            <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
+              <div className="min-w-0"><button onClick={() => setActiveId(null)} className="mb-3 inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:hidden"><ArrowLeft className="h-3.5 w-3.5" /> All chats</button><h2 className="text-xl font-semibold sm:text-2xl">{active.title ?? "Untitled"}</h2><p className="mt-1 text-xs text-muted-foreground">{active.created_at ? new Date(active.created_at).toLocaleString() : ""}</p></div>
+              <div className="flex shrink-0 items-center gap-2"><button onClick={continueChat} className="cursor-pointer rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/90">Continue</button><button onClick={() => void del(active.id)} aria-label="Delete conversation" className="cursor-pointer rounded-lg border border-border p-2 text-destructive transition hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button></div>
             </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">{active.title ?? "Untitled"}</h2>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>💬 Chat</span><span>•</span>
-                    <span>{active.created_at ? new Date(active.created_at).toLocaleString() : ""}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button className="rounded-md p-1.5 border border-border"><Star className="h-3.5 w-3.5" /></button>
-                  <button className="rounded-md p-1.5 border border-border"><Share2 className="h-3.5 w-3.5" /></button>
-                  <button onClick={() => void del(active.id)} className="rounded-md p-1.5 border border-border text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                  <button className="rounded-md p-1.5 border border-border"><MoreHorizontal className="h-3.5 w-3.5" /></button>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-[1fr_240px] gap-6">
-                <div className="space-y-4">
-                  {messages.length === 0 && <p className="text-xs text-muted-foreground">No messages in this chat.</p>}
-                  {messages.map((m) =>
-                    m.role === "user" ? (
-                      <div key={m.id} className="flex justify-end">
-                        <div className="rounded-2xl bg-accent/50 px-4 py-2.5 text-sm max-w-[80%] whitespace-pre-wrap">{m.content}</div>
-                      </div>
-                    ) : (
-                      <div key={m.id} className="flex items-start gap-3">
-                        <img src={logo} alt="" className="h-7 w-7 rounded-full bg-white p-1 border border-border" />
-                        <div className="rounded-2xl border border-border bg-background px-4 py-3 text-sm max-w-[80%] whitespace-pre-wrap">{m.content}</div>
-                      </div>
-                    ),
-                  )}
-                </div>
-                <aside className="space-y-4">
-                  <div className="rounded-xl border border-border p-4 text-xs">
-                    <p className="font-semibold">Details</p>
-                    <dl className="mt-3 space-y-2 text-muted-foreground">
-                      <div className="flex justify-between"><dt>Total messages</dt><dd className="text-foreground">{messages.length}</dd></div>
-                    </dl>
-                  </div>
-                  <div className="rounded-xl bg-accent/40 p-4 text-xs">
-                    <p className="font-semibold flex items-center gap-1">Your history is private <Lock className="h-3 w-3" /></p>
-                    <p className="mt-1 text-muted-foreground">Yuki stores your history securely and never shares it with anyone.</p>
-                  </div>
-                </aside>
-              </div>
-            </>
-          )}
+            <div className="mx-auto mt-6 max-w-3xl space-y-5">
+              {loadingMessages ? <div className="space-y-3">{[0, 1, 2].map((item) => <div key={item} className="h-16 animate-pulse rounded-xl bg-muted" />)}</div> : messages.length === 0 ? <p className="py-12 text-center text-xs text-muted-foreground">No messages in this chat.</p> : messages.map((message) => message.role === "user" ? <div key={message.id} className="flex justify-end"><div className="max-w-[88%] rounded-2xl bg-accent px-4 py-3 text-sm whitespace-pre-wrap sm:max-w-[75%]">{message.content}</div></div> : <div key={message.id} className="flex items-start gap-3"><img src={logo} alt="Yuki" className="h-8 w-8 shrink-0 rounded-full border border-border bg-card p-1" /><div className="max-w-[88%] rounded-2xl border border-border bg-card px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap sm:max-w-[80%]">{message.content}</div></div>)}
+              <div className="flex items-start gap-2 rounded-lg bg-accent/30 px-4 py-3 text-xs text-muted-foreground"><Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span>Your conversation history is private to your account.</span></div>
+            </div>
+          </>}
         </section>
       </div>
     </AppShell>
@@ -173,30 +123,20 @@ function HistoryPage() {
 
 function formatWhen(iso: string | null): string {
   if (!iso) return "";
-  const d = new Date(iso);
-  const diff = Date.now() - d.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${Math.max(1, mins)}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d`;
-  return d.toLocaleDateString();
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.max(0, Math.floor(diff / 60000));
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return days < 7 ? `${days}d ago` : new Date(iso).toLocaleDateString();
 }
 
 function groupByDay(items: Convo[]) {
   const today: Convo[] = [], week: Convo[] = [], older: Convo[] = [];
-  const now = Date.now();
-  for (const c of items) {
-    const t = c.created_at ? new Date(c.created_at).getTime() : 0;
-    const days = (now - t) / 86400000;
-    if (days < 1) today.push(c);
-    else if (days < 7) week.push(c);
-    else older.push(c);
+  for (const conversation of items) {
+    const days = (Date.now() - (conversation.created_at ? new Date(conversation.created_at).getTime() : 0)) / 86400000;
+    if (days < 1) today.push(conversation); else if (days < 7) week.push(conversation); else older.push(conversation);
   }
-  return [
-    { label: "Today", items: today },
-    { label: "Previous 7 days", items: week },
-    { label: "Older", items: older },
-  ].filter((g) => g.items.length);
+  return [{ label: "Today", items: today }, { label: "Previous 7 days", items: week }, { label: "Older", items: older }].filter((group) => group.items.length);
 }
