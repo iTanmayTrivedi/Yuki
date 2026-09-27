@@ -37,7 +37,7 @@ The system supports three registers (casual, desu-masu, keigo), remembers user g
 | **TanStack Start + Router** | File-based routing with typed loaders and SSR head. | Correct SEO per route; no client-only shortcuts. |
 | **Supabase (Postgres + Auth + RLS)** | Managed Postgres, Row Level Security on every user-scoped table, Google OAuth. | Security in the schema, not the client. |
 | **Tailwind v4 + shadcn/ui** | Token-driven design system; full dark-mode parity. | Zero hardcoded colors in components. |
-| **Lovable AI Gateway + OpenRouter** | Server-side model calls with fallback ladder. | API keys never leave the server; provider-agnostic. |
+| **Groq API** | Server-side model calls for chat. | API keys never leave the server. |
 | **Zustand + TanStack Query** | Client state (Zustand) + server state (Query). | Optimistic UX with background refetch. |
 | **Noto Serif JP + Instrument Serif** | Bilingual typography that respects Japanese reading rhythm. | Japanese isn't Latin with different glyphs. |
 
@@ -101,7 +101,7 @@ Backend uses TanStack Start server functions for app-internal RPC and Supabase E
 ```
 POST /auth/v1/signup                    Email / password registration
 POST /auth/v1/token?grant_type=password Sign-in
-GET  /auth/v1/authorize?provider=google Google OAuth via Lovable broker
+GET  /auth/v1/authorize?provider=google Google OAuth via Supabase Auth
 
 GET  /rest/v1/conversations             RLS-scoped to caller
 POST /rest/v1/messages                  Server validates ownership
@@ -124,11 +124,11 @@ POST /functions/v1/rewrite-register     Casual ↔ desu-masu ↔ keigo
 
 | Auth | AI Layer |
 | --- | --- |
-| Supabase Auth — Email/Password + Google OAuth (via Lovable broker), JWT with refresh rotation. | Lovable AI Gateway with OpenRouter fallback. Called server-side; keys sealed in Supabase Vault. |
+| Supabase Auth — Email/Password + Google OAuth, JWT with refresh rotation. | Groq for chat, called server-side with credentials kept off the browser. |
 
 | Realtime | Deployment |
 | --- | --- |
-| Postgres logical replication → Supabase Realtime → TanStack Query cache invalidation. | Static build on Lovable CDN; edge runtime on Cloudflare Workers. |
+| Postgres logical replication → Supabase Realtime → TanStack Query cache invalidation. | Hosted deployment with an edge runtime. |
 
 ## 08 · Database
 
@@ -151,8 +151,8 @@ PostgreSQL (via Supabase) — relational schema with enums, triggers, and **RLS 
 | --- | --- | --- |
 | **[SEC] RLS on every public table** | **[SEC] Roles in a separate table** | **[SEC] JWT + refresh rotation** |
 | No client reads or writes outside its own scope. | `has_role()` SECURITY DEFINER avoids recursive RLS & escalation. | Supabase Auth issues short-lived JWTs with rotating refresh tokens. |
-| **[SEC] Scope-guarded AI calls** | **[SEC] Google OAuth via broker** | **[SEC] Secrets in Vault** |
-| Off-topic queries rejected before the model call — no credit leakage. | Iframe-safe `web_message` flow through Lovable broker. | Model API keys and service keys never shipped to the browser. |
+| **[SEC] Scope-guarded AI calls** | **[SEC] Google OAuth via Supabase** | **[SEC] Server-side secrets** |
+| Off-topic queries rejected before the model call — no credit leakage. | OAuth redirects are managed by Supabase Auth. | Model API keys and service keys never shipped to the browser. |
 
 ## 10 · Core Capabilities
 
@@ -198,7 +198,7 @@ Supabase Auth  ──►  JWT attached to every downstream request
    │
    ├──► Edge Functions (Deno)
    │       └── chat · classify-intent · think-deeper · discover
-   │            └──► Lovable AI Gateway ──► model provider (with fallback)
+   │            └──► Groq API ──► chat model
    │
    └──► Realtime ──► WebSocket ──► TanStack Query cache invalidate
 ```
@@ -232,7 +232,7 @@ Supabase Auth  ──►  JWT attached to every downstream request
 
 ## 17 · Scalability
 
-- **■** Stateless React build served from Lovable CDN — horizontal by definition.
+- **■** Stateless React frontend served from hosted infrastructure.
 - **■** Supabase Postgres scales vertically to 64-core instances; read replicas for analytics.
 - **■** Edge Functions run on Deno Deploy globally — cold start under 50ms.
 - **■** Indexes on `(user_id, created_at)` keep conversation queries sub-10ms at projected 100k rows.
