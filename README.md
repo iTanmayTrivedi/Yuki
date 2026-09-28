@@ -252,7 +252,7 @@ Landing · Features · Use cases · Home dashboard with journey cards · Streami
 
 ## 20 · Live Demo 
 
-→ **Live demo** — click *yuki.tanmaytrivedi.dev* on the landing page to sign in and explore.
+→ **Live demo** — click [*Yuki*](https://yuki.tanmaytrivedi.dev) on the landing page to sign in and explore.
 
 
 <div align="center">
