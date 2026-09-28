@@ -250,12 +250,10 @@ Supabase Auth  ──►  JWT attached to every downstream request
 
 Landing · Features · Use cases · Home dashboard with journey cards · Streaming chat with register toggle · Library with saved roadmaps · Discover feed with phrase-of-the-day · Profile with JLPT + target city.
 
-## 20 · Live Demo + Source
+## 20 · Live Demo 
 
-→ **Live demo** — click *Get started* on the landing page to sign in and explore.
-→ **Source** — full source including Postgres migrations, edge functions, and typed clients.
+→ **Live demo** — click *yuki.tanmaytrivedi.dev* on the landing page to sign in and explore.
 
----
 
 <div align="center">
 
