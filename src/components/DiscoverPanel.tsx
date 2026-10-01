@@ -1,6 +1,7 @@
 import { Building2, Cloud, CloudRain, ExternalLink, RefreshCw, Sparkles, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDiscoverFeed } from "@/hooks/use-discover-feed";
+import { JapaneseMiniQuiz } from "@/components/JapaneseMiniQuiz";
 
 export function DiscoverPanel() {
   const { phrase, hiring, insight, weather, updatedAt, loading, error, refresh } = useDiscoverFeed();
@@ -50,6 +51,8 @@ export function DiscoverPanel() {
           <p className="mt-1 text-xs text-muted-foreground">{phrase.meaning}</p>
         </div>
       )}
+
+      <JapaneseMiniQuiz />
 
       <div>
         <div className="flex items-center justify-between">
